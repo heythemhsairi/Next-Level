@@ -6,4 +6,5 @@ build
 .env*.local
 supabase/.temp
 *.log
+*.tsbuildinfo
 .DS_Store
