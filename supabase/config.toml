@@ -1,0 +1,5 @@
+# Next Level — Supabase project config
+# Used by the Supabase CLI. The project_id is the ref of the linked Supabase project.
+# Set this to YOUR OWN new Supabase project ref before running `supabase link` / `db push`.
+
+project_id = "yubvaqgksponiffqmcgt"

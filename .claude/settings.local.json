@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"e:\\\\desktop\\\\Desktops\\\\desktop19\\\\AreenCUBs-Studio\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer, LastWriteTime)",
+      "Bash(Sort-Object PSIsContainer -Descending)",
+      "Bash(file *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)"
+    ]
+  }
+}
