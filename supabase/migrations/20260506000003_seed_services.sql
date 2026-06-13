@@ -2,6 +2,18 @@
 -- Pre-loads the 17 services from the historical devis (EST-0034/0035/0036).
 -- Treated as a migration so `supabase db push` applies it. Idempotent.
 
+-- Ensure the unique constraint exists before seeding, so `on conflict (name_fr)`
+-- below has a matching constraint on a fresh database. (Migration 0007 also
+-- adds this; this guard makes the seed self-contained and order-safe.)
+do $$ begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'services_name_fr_uk'
+  ) then
+    alter table public.services
+      add constraint services_name_fr_uk unique (name_fr);
+  end if;
+end $$;
+
 insert into public.services (name_fr, name_en, category, default_price_dt, default_unit)
 values
   ('Identité de Marque', 'Brand identity', 'branding', 550.00, 'package'),

@@ -18,6 +18,10 @@ using ranked r
 where s.id = r.id and r.rn > 1;
 
 do $$ begin
-  alter table public.services
-    add constraint services_name_fr_uk unique (name_fr);
-exception when duplicate_object then null; end $$;
+  if not exists (
+    select 1 from pg_constraint where conname = 'services_name_fr_uk'
+  ) then
+    alter table public.services
+      add constraint services_name_fr_uk unique (name_fr);
+  end if;
+end $$;

@@ -26,8 +26,12 @@ do $$ begin
 exception when undefined_object then null; end $$;
 
 do $$ begin
-  alter table public.devis add constraint devis_kind_number_uk unique (kind, devis_number);
-exception when duplicate_object then null; end $$;
+  if not exists (
+    select 1 from pg_constraint where conname = 'devis_kind_number_uk'
+  ) then
+    alter table public.devis add constraint devis_kind_number_uk unique (kind, devis_number);
+  end if;
+end $$;
 
 -- ===== 3. Featured employee of the month =====
 create table if not exists public.featured_employees (
