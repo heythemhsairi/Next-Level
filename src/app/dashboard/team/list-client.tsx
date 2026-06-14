@@ -9,26 +9,29 @@ import { Avatar } from "@/components/avatar";
 import { Table, THead, TBody, TR, TH, TD, EmptyState } from "@/components/ui/table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type Member = {
   id: string;
   username: string;
   full_name: string | null;
-  role: UserRole;
+  role: AnyUserRole;
   avatar_url: string | null;
   job_title: string | null;
   email: string;
   created_at: string;
 };
 
-const roleTone: Record<UserRole, "blue" | "green" | "violet"> = {
+const roleTone: Record<AnyUserRole, "blue" | "green" | "violet"> = {
   admin: "violet",
+  editor: "blue",
+  sales: "green",
+  client: "blue",
   worker: "blue",
   freelancer: "green",
 };
 
-type RoleFilter = "all" | UserRole;
+type RoleFilter = "all" | AnyUserRole;
 
 export function TeamListClient({
   members,
@@ -56,6 +59,9 @@ export function TeamListClient({
     const base: Record<RoleFilter, number> = {
       all: members.length,
       admin: 0,
+      editor: 0,
+      sales: 0,
+      client: 0,
       worker: 0,
       freelancer: 0,
     };
@@ -126,7 +132,7 @@ export function TeamListClient({
                         : "text-ink/60 hover:bg-white/80 hover:text-ink",
                     )}
                   >
-                    {r === "all" ? t.common.all : t.roles[r as UserRole]}
+                    {r === "all" ? t.common.all : t.roles[r as AnyUserRole]}
                     <span className="ml-1.5 text-[10px] opacity-75">
                       {counts[r]}
                     </span>

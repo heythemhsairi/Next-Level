@@ -5,9 +5,15 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { usernameToEmail, type UserRole } from "@/lib/utils";
+import { usernameToEmail, type AnyUserRole } from "@/lib/utils";
 
-const VALID_ROLES: UserRole[] = ["admin", "worker", "freelancer"];
+const VALID_ROLES: AnyUserRole[] = [
+  "admin",
+  "editor",
+  "sales",
+  "worker",
+  "freelancer",
+];
 
 export type ActionResult =
   | { ok: true }
@@ -24,7 +30,7 @@ export async function createTeamMemberAction(
     .split("@")[0];
   const fullName = String(formData.get("full_name") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "") as UserRole;
+  const role = String(formData.get("role") ?? "") as AnyUserRole;
   const jobTitleRaw = String(formData.get("job_title") ?? "").trim();
   const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;
 
@@ -75,7 +81,7 @@ export async function updateTeamMemberAction(
 ): Promise<ActionResult> {
   const session = await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  const role = String(formData.get("role") ?? "") as UserRole;
+  const role = String(formData.get("role") ?? "") as AnyUserRole;
   const fullName = String(formData.get("full_name") ?? "").trim();
   const jobTitleRaw = String(formData.get("job_title") ?? "").trim();
   const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/provider";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type ActionKey =
   | "newTask"
@@ -17,7 +17,7 @@ type Action = {
   href: string;
   icon: React.ReactNode;
   tone: "brand" | "accent" | "ink";
-  rolesAllowed: UserRole[];
+  rolesAllowed: AnyUserRole[];
 };
 
 function I(d: string) {
@@ -98,7 +98,7 @@ const TONE_CLASS: Record<Action["tone"], string> = {
   ink: "from-ink to-ink-soft text-cream shadow-soft hover:shadow-lift",
 };
 
-export function QuickActions({ role }: { role: UserRole }) {
+export function QuickActions({ role }: { role: AnyUserRole }) {
   const { t } = useI18n();
   const actions = ACTIONS.filter((a) => a.rolesAllowed.includes(role));
   if (actions.length === 0) return null;

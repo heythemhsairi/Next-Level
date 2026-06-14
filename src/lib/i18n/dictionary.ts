@@ -1,7 +1,9 @@
-export type Locale = "fr" | "en";
+// English-only. The `fr` block below is retained as reference data but is no
+// longer selectable — the app renders English everywhere.
+export type Locale = "en";
 
-export const LOCALES: Locale[] = ["fr", "en"];
-export const DEFAULT_LOCALE: Locale = "fr";
+export const LOCALES: Locale[] = ["en"];
+export const DEFAULT_LOCALE: Locale = "en";
 
 export const dict = {
   fr: {
@@ -537,6 +539,9 @@ export const dict = {
     },
     roles: {
       admin: "Administrateur",
+      editor: "Monteur",
+      sales: "Commercial",
+      client: "Client",
       worker: "Collaborateur",
       freelancer: "Freelance",
     },
@@ -1259,6 +1264,9 @@ export const dict = {
     },
     roles: {
       admin: "Administrator",
+      editor: "Editor",
+      sales: "Sales",
+      client: "Client",
       worker: "Team member",
       freelancer: "Freelancer",
     },

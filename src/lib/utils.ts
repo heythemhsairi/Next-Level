@@ -19,6 +19,39 @@ export function emailToUsername(email: string): string {
   return email.split("@")[0];
 }
 
-export type UserRole = "admin" | "worker" | "freelancer";
+/** True when the input looks like an email (clients log in with a real email). */
+export function looksLikeEmail(input: string): boolean {
+  return input.includes("@");
+}
 
-export const ROLES: UserRole[] = ["admin", "worker", "freelancer"];
+/**
+ * Resolve a login identifier to the email Supabase Auth expects.
+ * Clients type a real email (passed through); team members type a username,
+ * which gets the synthetic internal domain appended.
+ */
+export function resolveLoginEmail(identifier: string): string {
+  const value = identifier.trim().toLowerCase();
+  return looksLikeEmail(value) ? value : usernameToEmail(value);
+}
+
+// Current platform roles. Legacy 'worker'/'freelancer' rows are normalized to
+// 'editor' in the DB, but we keep them in the type for row-shape compatibility.
+export type UserRole = "admin" | "editor" | "sales" | "client";
+export type LegacyUserRole = "worker" | "freelancer";
+export type AnyUserRole = UserRole | LegacyUserRole;
+
+/** Roles a team admin can assign when creating a team member. */
+export const ROLES: UserRole[] = ["admin", "editor", "sales"];
+
+const STAFF_ROLES = new Set<AnyUserRole>([
+  "admin",
+  "editor",
+  "sales",
+  "worker",
+  "freelancer",
+]);
+
+/** Staff = anyone who belongs in /dashboard (everyone except clients). */
+export function isStaffRole(role: AnyUserRole | null | undefined): boolean {
+  return !!role && STAFF_ROLES.has(role);
+}

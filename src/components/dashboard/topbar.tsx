@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LanguageToggle } from "@/components/language-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
@@ -10,10 +9,10 @@ import { useI18n } from "@/lib/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type Props = {
-  role: UserRole;
+  role: AnyUserRole;
   username: string;
   avatarUrl?: string | null;
   jobTitle?: string | null;
@@ -56,7 +55,6 @@ export function Topbar({
           </span>
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <LanguageToggle />
           <NotificationBell initial={notifications} />
           <Link
             href="/dashboard/profile"

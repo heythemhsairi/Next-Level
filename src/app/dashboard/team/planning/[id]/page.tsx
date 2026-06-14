@@ -7,16 +7,22 @@ import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkCalendar } from "@/components/work-calendar";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
-const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
+const roleTone: Record<AnyUserRole, "violet" | "blue" | "green"> = {
   admin: "violet",
+  editor: "blue",
+  sales: "green",
+  client: "blue",
   worker: "blue",
   freelancer: "green",
 };
 
-const roleLabel: Record<UserRole, string> = {
+const roleLabel: Record<AnyUserRole, string> = {
   admin: "Administrateur",
+  editor: "Monteur",
+  sales: "Commercial",
+  client: "Client",
   worker: "Collaborateur",
   freelancer: "Freelance",
 };
@@ -77,7 +83,7 @@ export default async function MemberPlanningPage({
     else if (r.location === "home") homeMonth++;
   }
 
-  const role = profile.role as UserRole;
+  const role = profile.role as AnyUserRole;
 
   return (
     <div className="space-y-6">

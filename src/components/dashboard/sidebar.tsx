@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type NavItem = {
   href: string;
   label: string;
-  rolesAllowed: UserRole[];
+  rolesAllowed: AnyUserRole[];
   icon: string;
   group: "workspace" | "business" | "team" | "system";
 };
@@ -39,7 +39,7 @@ const ICONS: Record<string, string> = {
 };
 
 function buildNav(
-  role: UserRole,
+  role: AnyUserRole,
   t: ReturnType<typeof useI18n>["t"],
 ): NavItem[] {
   return [
@@ -168,7 +168,7 @@ const GROUP_ORDER: NavItem["group"][] = [
   "system",
 ];
 
-export function Sidebar({ role }: { role: UserRole }) {
+export function Sidebar({ role }: { role: AnyUserRole }) {
   const { t } = useI18n();
   const pathname = usePathname();
   const items = buildNav(role, t).filter((i) =>
@@ -235,7 +235,7 @@ export function Sidebar({ role }: { role: UserRole }) {
   );
 }
 
-export function MobileNav({ role }: { role: UserRole }) {
+export function MobileNav({ role }: { role: AnyUserRole }) {
   const { t } = useI18n();
   const pathname = usePathname();
   const items = buildNav(role, t).filter((i) =>

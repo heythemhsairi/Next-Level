@@ -42,21 +42,41 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith("/login");
+  const isDashboard = path.startsWith("/dashboard");
+  const isPortal = path.startsWith("/portal");
   const isPublicAsset =
     path.startsWith("/_next") ||
     path.startsWith("/favicon") ||
     path === "/";
 
+  // Not logged in → only auth route / public assets allowed.
   if (!user && !isAuthRoute && !isPublicAsset) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  // Logged in: figure out which side of the app this user belongs to.
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const isClient = profile?.role === "client";
+    const home = isClient ? "/portal" : "/dashboard";
+
+    const redirectTo = (pathname: string) => {
+      const url = request.nextUrl.clone();
+      url.pathname = pathname;
+      return NextResponse.redirect(url);
+    };
+
+    // Send authenticated users off the login page to their home.
+    if (isAuthRoute) return redirectTo(home);
+    // Keep each role on its own side of the app.
+    if (isClient && isDashboard) return redirectTo("/portal");
+    if (!isClient && isPortal) return redirectTo("/dashboard");
   }
 
   return supabaseResponse;

@@ -15,10 +15,16 @@ CREATE TABLE IF NOT EXISTS public.task_tag_catalog (
 
 ALTER TABLE public.task_tag_catalog ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tag_catalog_select" ON public.task_tag_catalog;
 CREATE POLICY "tag_catalog_select"
   ON public.task_tag_catalog FOR SELECT
   USING (auth.role() = 'authenticated');
 
+-- Legacy-role write policy. The pivot migration (…_pivot_schema_rls) replaces
+-- this with an is_staff()-based policy once the editor/sales enum values exist.
+-- Do NOT reference 'editor'/'sales' here — those values are added in a later
+-- migration, so they aren't valid at this point in the sequence.
+DROP POLICY IF EXISTS "tag_catalog_write" ON public.task_tag_catalog;
 CREATE POLICY "tag_catalog_write"
   ON public.task_tag_catalog FOR ALL
   USING (public.current_role() IN ('admin', 'worker'))

@@ -38,17 +38,22 @@ ON CONFLICT DO NOTHING;
 ALTER TABLE public.task_assignees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.project_assignees ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "task_assignees_select" ON public.task_assignees;
 CREATE POLICY "task_assignees_select"
   ON public.task_assignees FOR SELECT
   USING (auth.role() = 'authenticated');
+-- Legacy-role write policy; the pivot migration replaces it with is_staff().
+DROP POLICY IF EXISTS "task_assignees_write" ON public.task_assignees;
 CREATE POLICY "task_assignees_write"
   ON public.task_assignees FOR ALL
   USING (public.current_role() IN ('admin', 'worker'))
   WITH CHECK (public.current_role() IN ('admin', 'worker'));
 
+DROP POLICY IF EXISTS "project_assignees_select" ON public.project_assignees;
 CREATE POLICY "project_assignees_select"
   ON public.project_assignees FOR SELECT
   USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "project_assignees_write" ON public.project_assignees;
 CREATE POLICY "project_assignees_write"
   ON public.project_assignees FOR ALL
   USING (public.current_role() IN ('admin', 'worker'))

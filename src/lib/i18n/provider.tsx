@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -18,20 +17,13 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
-const STORAGE_KEY = "nextlevel.locale";
-
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  // English-only: locale is fixed. setLocale is kept as a no-op so any
+  // lingering callers don't break.
+  const [locale] = useState<Locale>(DEFAULT_LOCALE);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (saved === "fr" || saved === "en") setLocaleState(saved);
-  }, []);
-
-  const setLocale = useCallback((l: Locale) => {
-    setLocaleState(l);
-    localStorage.setItem(STORAGE_KEY, l);
-    document.documentElement.lang = l;
+  const setLocale = useCallback((_l: Locale) => {
+    /* no-op: the app is English-only */
   }, []);
 
   return (

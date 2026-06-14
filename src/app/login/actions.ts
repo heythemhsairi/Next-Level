@@ -2,25 +2,36 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { usernameToEmail } from "@/lib/utils";
+import { resolveLoginEmail, isStaffRole, type AnyUserRole } from "@/lib/utils";
 
 export async function signInAction(formData: FormData) {
-  const username = String(formData.get("username") ?? "").trim();
+  // Single field for both team (username) and clients (email).
+  const identifier = String(
+    formData.get("identifier") ?? formData.get("username") ?? "",
+  ).trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!username || !password) {
+  if (!identifier || !password) {
     return { error: "missing_fields" as const };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: usernameToEmail(username),
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: resolveLoginEmail(identifier),
     password,
   });
 
-  if (error) {
+  if (error || !data.user) {
     return { error: "invalid" as const };
   }
 
-  redirect("/dashboard");
+  // Route by role: clients land in their portal, staff in the dashboard.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  const role = (profile?.role ?? "editor") as AnyUserRole;
+  redirect(isStaffRole(role) ? "/dashboard" : "/portal");
 }

@@ -14,19 +14,22 @@ import {
   removeMyAvatarAction,
   changeMyPasswordAction,
 } from "./actions";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type Profile = {
   id: string;
   username: string;
   email: string;
   full_name: string | null;
-  role: UserRole;
+  role: AnyUserRole;
   avatar_url: string | null;
 };
 
-const roleTone: Record<UserRole, "violet" | "blue" | "green"> = {
+const roleTone: Record<AnyUserRole, "violet" | "blue" | "green"> = {
   admin: "violet",
+  editor: "blue",
+  sales: "green",
+  client: "blue",
   worker: "blue",
   freelancer: "green",
 };

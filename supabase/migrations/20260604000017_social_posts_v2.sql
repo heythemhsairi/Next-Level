@@ -4,10 +4,19 @@
 alter table public.social_posts
   add column if not exists platforms text[] not null default '{}';
 
--- Copy existing single platform value into the array
-update public.social_posts
-  set platforms = array[platform::text]
-  where platforms = '{}' and platform is not null;
+-- Copy existing single platform value into the array. Guarded so the file is
+-- re-runnable: on a second apply the `platform` column is already dropped, and
+-- referencing it directly would error — so only run the backfill if it exists.
+do $$ begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'social_posts' and column_name = 'platform'
+  ) then
+    update public.social_posts
+      set platforms = array[platform::text]
+      where platforms = '{}' and platform is not null;
+  end if;
+end $$;
 
 -- Drop old column (keep enum type for backwards compat if needed)
 alter table public.social_posts

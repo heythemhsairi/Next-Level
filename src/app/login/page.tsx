@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LanguageToggle } from "@/components/language-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { useI18n } from "@/lib/i18n/provider";
 import { signInAction } from "./actions";
@@ -47,9 +46,8 @@ export default function LoginPage() {
       `}</style>
 
       <div className="reveal relative w-full max-w-sm space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <BrandLogo width={150} />
-          <LanguageToggle />
         </div>
 
         <Card variant="ring" className="overflow-hidden">
@@ -65,18 +63,18 @@ export default function LoginPage() {
               <form className="space-y-4" onSubmit={onSubmit}>
                 <div className="space-y-1.5">
                   <label
-                    htmlFor="username"
+                    htmlFor="identifier"
                     className="text-[11px] font-semibold uppercase tracking-wider text-ink/60"
                   >
                     {t.login.username}
                   </label>
                   <Input
-                    id="username"
-                    name="username"
+                    id="identifier"
+                    name="identifier"
                     type="text"
                     autoComplete="username"
                     autoCapitalize="none"
-                    placeholder="heythem"
+                    placeholder="username or email"
                     required
                   />
                   <p className="text-xs text-ink/45">{t.login.usernameHint}</p>

@@ -11,7 +11,7 @@ import { Donut, DonutLegend, type DonutSlice } from "@/components/charts/donut";
 import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
 import { WorkCalendar } from "@/components/work-calendar";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
-import type { UserRole } from "@/lib/utils";
+import type { AnyUserRole } from "@/lib/utils";
 
 type Counts = {
   activeProjects: number;
@@ -62,7 +62,7 @@ type UpcomingTask = {
 };
 
 type Props = {
-  role: UserRole;
+  role: AnyUserRole;
   fullName: string;
   counts: Counts;
   revenue: Revenue;
@@ -349,7 +349,7 @@ function Greeting({
 }: {
   fullName: string;
   subtitle: string;
-  role: UserRole;
+  role: AnyUserRole;
 }) {
   const { t } = useI18n();
   const hour = new Date().getHours();

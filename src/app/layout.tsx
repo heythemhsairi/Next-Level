@@ -35,7 +35,7 @@ export default function RootLayout({
   // Next Level is dark-mode only — the `dark` class is fixed on <html>.
   return (
     <html
-      lang="fr"
+      lang="en"
       className={`dark ${inter.variable} ${cairo.variable}`}
     >
       <body>
