@@ -105,7 +105,7 @@ export function MonthlyBars({ series, className, height = 200 }: Props) {
             </div>
           </div>
         ) : (
-          <span className="text-ink/40">Survolez une barre pour le détail</span>
+          <span className="text-ink/40">Hover a bar for details</span>
         )}
       </div>
     </div>

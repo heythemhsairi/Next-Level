@@ -145,6 +145,7 @@ export function OverviewClient({
             trend={revenue.invoicedTrend}
             tone="brand"
             trendSuffix={t.kpis.vsLastMonth}
+            subStat="Billed this month"
             icon={
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z M14 2v6h6 M9 13h6 M9 17h6" />
             }
@@ -157,6 +158,11 @@ export function OverviewClient({
             invertTrend
             tone="amber"
             trendSuffix={t.kpis.vsLastMonth}
+            subStat={
+              revenue.mtdInvoiced > 0
+                ? `${Math.round((revenue.outstanding / revenue.mtdInvoiced) * 100)}% of invoiced unpaid`
+                : "Awaiting payment"
+            }
             icon={
               <>
                 <circle cx="12" cy="12" r="9" />
@@ -168,6 +174,11 @@ export function OverviewClient({
             label={t.kpis.activeProjects}
             value={counts.activeProjects}
             tone="ink"
+            subStat={
+              counts.clients !== null
+                ? `${counts.clients} client${counts.clients === 1 ? "" : "s"} · ${counts.activeTasks} open task${counts.activeTasks === 1 ? "" : "s"}`
+                : `${counts.activeTasks} open tasks`
+            }
             icon={
               <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
             }
@@ -378,9 +389,9 @@ function HeroRevenueCard({
     mtdInvoiced > 0 ? Math.min(100, (mtdPaid / mtdInvoiced) * 100) : 0;
 
   return (
-    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-[#0a1326] p-0 shadow-brand-glow lg:col-span-1 surface-grain">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-[#7c4dff]/30 blur-3xl" />
+    <Card className="relative h-full overflow-hidden border-0 bg-gradient-to-br from-brand via-brand-dark to-[#1a0608] p-0 shadow-brand-glow lg:col-span-1 surface-grain">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-light/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-brand/40 blur-3xl" />
 
       <div className="relative flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between">
@@ -402,9 +413,9 @@ function HeroRevenueCard({
             <span>{t.kpis.collectionRate}</span>
             <span>{collectionRate.toFixed(0)}%</span>
           </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/15">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/25">
             <div
-              className="h-full bg-gradient-to-r from-cyan-300 via-[#a0d2eb] to-white transition-all duration-700"
+              className="h-full bg-gradient-to-r from-white/70 to-white transition-all duration-700"
               style={{ width: `${collectionRate}%` }}
             />
           </div>
@@ -423,6 +434,7 @@ function KpiCard({
   tone = "neutral",
   icon,
   trendSuffix,
+  subStat,
   scaleMax,
 }: {
   label: string;
@@ -433,40 +445,22 @@ function KpiCard({
   tone?: "brand" | "amber" | "ink" | "neutral";
   icon?: React.ReactNode;
   trendSuffix?: string;
+  /** Small contextual line under the value, e.g. "62% of invoiced". */
+  subStat?: string;
   /** Optional value reference for the progress bar (0..scaleMax). */
   scaleMax?: number;
 }) {
-  // Tone-driven palette. Orange/amber stays available for legacy callers but
-  // we route admin "outstanding" → amber, everything else → brand/ink/violet.
-  const iconClass =
-    tone === "brand"
-      ? "bg-brand/15 text-brand"
-      : tone === "amber"
-        ? "bg-[#7c4dff]/18 text-[#bfa6ff]"
-        : tone === "ink"
-          ? "bg-ink/10 text-ink"
-          : "bg-ink/5 text-ink/60";
+  // On-brand palette: every accent is red. `amber` (outstanding) uses a
+  // muted red so it reads as "attention" without leaving the theme.
+  const accent =
+    tone === "amber"
+      ? { chip: "bg-brand/12 text-brand-light", glow: "bg-brand/20", bar: "from-brand-light to-brand" }
+      : tone === "ink"
+        ? { chip: "bg-white/8 text-ink/80", glow: "bg-white/5", bar: "from-ink/40 to-ink/20" }
+        : tone === "neutral"
+          ? { chip: "bg-white/8 text-ink/70", glow: "bg-white/5", bar: "from-ink/30 to-ink/15" }
+          : { chip: "bg-brand/15 text-brand", glow: "bg-brand/20", bar: "from-brand to-brand-dark" };
 
-  const glowClass =
-    tone === "brand"
-      ? "bg-brand/15"
-      : tone === "amber"
-        ? "bg-[#7c4dff]/18"
-        : tone === "ink"
-          ? "bg-cyan-400/10"
-          : "bg-ink/4";
-
-  const barClass =
-    tone === "brand"
-      ? "from-brand to-cyan-400"
-      : tone === "amber"
-        ? "from-[#7c4dff] to-[#a78bfa]"
-        : tone === "ink"
-          ? "from-ink to-ink-soft"
-          : "from-ink/30 to-ink/15";
-
-  // Progress bar width (0..100%). If no scaleMax given, fall back to a fixed
-  // reference so the bar still visualizes activity without being misleading.
   const pct =
     scaleMax && scaleMax > 0
       ? Math.max(0, Math.min(100, (value / scaleMax) * 100))
@@ -475,33 +469,19 @@ function KpiCard({
         : Math.min(100, 18 + Math.log10(Math.max(value, 1)) * 28);
 
   return (
-    <Card
-      interactive
-      className="relative h-full overflow-hidden border-0 p-0"
-    >
-      {/*
-        Solid layered card surface — fixes the "label floats outside the
-        card" perception from Heythem's screenshot. The previous
-        bg-white/8 was so transparent that labels read as sitting on the
-        page background instead of inside a card.
-      */}
+    <Card interactive className="relative h-full overflow-hidden p-0">
       <div
         aria-hidden
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#161f3a] via-[#121a2e] to-[#0d1424] ring-1 ring-inset ring-white/10"
+        className={`pointer-events-none absolute -bottom-14 -right-14 h-40 w-40 rounded-full blur-3xl ${accent.glow}`}
       />
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute -bottom-14 -right-14 h-40 w-40 rounded-full blur-3xl ${glowClass}`}
-      />
-      <CardContent className="relative flex h-full flex-col px-5 py-5 md:px-6 md:py-6">
-        {/* Top row: label + icon chip */}
+      <CardContent className="relative flex h-full flex-col px-5 py-5">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/60">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/55">
             {label}
           </p>
           {icon && (
             <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/10 ${iconClass}`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-white/8 ${accent.chip}`}
             >
               <svg
                 width="16"
@@ -519,20 +499,16 @@ function KpiCard({
           )}
         </div>
 
-        {/* Value + scale bar — centered in the remaining space so all four
-            cards share the same value baseline. */}
-        <div className="flex flex-1 flex-col justify-center pt-5">
-          <p className="font-mono text-[32px] font-semibold leading-none tracking-tight text-cream">
-            <CountUp
-              to={value}
-              decimals={0}
-              suffix={currency ? " DT" : ""}
-            />
+        <div className="flex flex-1 flex-col justify-center pt-4">
+          <p className="text-[30px] font-bold leading-none tracking-tight text-ink">
+            <CountUp to={value} decimals={0} suffix={currency ? " DT" : ""} />
           </p>
-          {/* Slim relative-scale bar so the card never reads "empty". */}
+          {subStat && (
+            <p className="mt-2 text-xs text-ink/45">{subStat}</p>
+          )}
           <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/8">
             <div
-              className={`h-full bg-gradient-to-r ${barClass} transition-all duration-700`}
+              className={`h-full bg-gradient-to-r ${accent.bar} transition-all duration-700`}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -541,15 +517,11 @@ function KpiCard({
               <>
                 <TrendPill pct={trend} invert={invertTrend} />
                 {trendSuffix && (
-                  <span className="text-[11px] text-cream/50">
-                    {trendSuffix}
-                  </span>
+                  <span className="text-[11px] text-ink/45">{trendSuffix}</span>
                 )}
               </>
             ) : (
-              <span className="text-[11px] text-cream/30">
-                &nbsp;
-              </span>
+              <span className="text-[11px] text-ink/25">&nbsp;</span>
             )}
           </div>
         </div>
@@ -575,7 +547,7 @@ function FeaturedCard({
       {/* Deep navy backdrop with floating brand/violet/cyan blobs */}
       <div
         aria-hidden
-        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2a4a] via-[#0f1830] to-[#0a1326] ring-1 ring-inset ring-white/12"
+        className="absolute inset-0 rounded-2xl bg-gradient-to-br from-brand-dark via-[#1a0608] to-ink ring-1 ring-inset ring-white/12"
       />
       <div
         aria-hidden
@@ -583,11 +555,11 @@ function FeaturedCard({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-[#7c4dff]/30 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 right-1/4 h-64 w-64 rounded-full bg-brand/30 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-cyan-400/22 blur-3xl"
+        className="pointer-events-none absolute -right-12 top-1/3 h-48 w-48 rounded-full bg-brand-light/20 blur-3xl"
       />
 
       <CardContent className="relative flex min-h-[140px] flex-col items-center gap-6 px-8 py-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
@@ -595,16 +567,16 @@ function FeaturedCard({
         <div className="relative shrink-0">
           <div
             aria-hidden
-            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 opacity-70 blur-xl"
+            className="absolute inset-0 -m-2.5 animate-pulse rounded-full bg-gradient-to-br from-brand-light via-brand to-brand-dark opacity-70 blur-xl"
           />
-          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand via-[#7c4dff] to-cyan-400 p-[2px]">
-            <div className="h-full w-full rounded-full bg-[#0a1326]" />
+          <div className="absolute inset-0 -m-1 rounded-full bg-gradient-to-br from-brand-light via-brand to-brand-dark p-[2px]">
+            <div className="h-full w-full rounded-full bg-ink" />
           </div>
           <Avatar
             src={featured.avatar_url}
             name={name}
             size="xl"
-            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-[#0a1326]"
+            className="relative ring-2 ring-brand/70 ring-offset-2 ring-offset-ink"
           />
           <span
             className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-12 text-2xl drop-shadow-md"
@@ -624,7 +596,7 @@ function FeaturedCard({
         */}
         <div className="min-w-0 flex-1 space-y-2.5 sm:pt-3">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-300/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-cyan-100 ring-1 ring-cyan-300/40">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/15 px-3 py-1 text-[10.5px] font-bold uppercase leading-none tracking-[0.20em] text-brand-light ring-1 ring-brand/40">
               ✦ {t.featured.title}
             </span>
             <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cream/55">
@@ -708,7 +680,7 @@ function RecentDevisFeed({ rows }: { rows: RecentDevis[] }) {
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                   d.kind === "facture"
-                    ? "bg-[#7c4dff]/20 text-[#bfa6ff]"
+                    ? "bg-brand/15 text-brand-light"
                     : "bg-brand/10 text-brand"
                 }`}
               >
