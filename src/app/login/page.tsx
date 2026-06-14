@@ -26,12 +26,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative grid min-h-screen place-items-center bg-cream bg-mesh px-4 py-12">
+    <main className="relative grid min-h-screen place-items-center bg-ink bg-mesh px-4 py-12">
       {/* Animated brand orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-brand/15 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
-        <div className="absolute -right-32 bottom-1/4 h-[28rem] w-[28rem] rounded-full bg-accent/12 blur-3xl animate-[float_10s_ease-in-out_infinite_1s]" />
-        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/5 blur-3xl" />
+        <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-brand/25 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
+        <div className="absolute -right-32 bottom-1/4 h-[28rem] w-[28rem] rounded-full bg-brand/15 blur-3xl animate-[float_10s_ease-in-out_infinite_1s]" />
+        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/10 blur-3xl" />
       </div>
 
       <style jsx>{`
@@ -48,7 +48,7 @@ export default function LoginPage() {
 
       <div className="reveal relative w-full max-w-sm space-y-6">
         <div className="flex items-center justify-between">
-          <BrandLogo width={150} className="text-brand" />
+          <BrandLogo width={150} />
           <LanguageToggle />
         </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-[11px] text-ink/40">
-          © {new Date().getFullYear()} Areen CUBs · Booster · IT Services
+          © {new Date().getFullYear()} Next Level Studio
         </p>
       </div>
     </main>

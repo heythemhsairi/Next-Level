@@ -7,4 +7,5 @@ build
 supabase/.temp
 *.log
 *.tsbuildinfo
+next-env.d.ts
 .DS_Store

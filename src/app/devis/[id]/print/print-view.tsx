@@ -142,16 +142,10 @@ export function DevisPrintView({
           <div className="signature-tag">Cachet &amp; Signature</div>
           <div className="signature-box">
             {/*
-              Areen CUBs official stamp + signature (public/stamp.png).
-              No box/border — it sits directly on the page so the
-              cachet reads like a real ink stamp.
+              Blank signing area. The previous brand's official stamp was
+              removed during the Next Level rebrand. Drop a new stamp at
+              public/stamp.png and restore the <img> here when available.
             */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/stamp.png"
-              alt="Cachet et signature Areen CUBs"
-              className="signature-stamp"
-            />
           </div>
         </section>
 
@@ -186,9 +180,9 @@ export function DevisPrintView({
 
       <style jsx global>{`
         :root {
-          --brand: #3b8bba;
-          --brand-dark: #2c6e96;
-          --accent: #ff9e1f;
+          --brand: #7C3AED;
+          --brand-dark: #4C1D95;
+          --accent: #9B5DFF;
           --ink: #1e1e24;
           --muted: #6b6b75;
           --cream: #fff8f0;
@@ -276,14 +270,14 @@ export function DevisPrintView({
           margin-bottom: 1mm;
         }
         .party-box {
-          background: rgba(59, 139, 186, 0.08);
+          background: rgba(124, 58, 237, 0.08);
           border-left: 3px solid var(--brand);
           border-radius: 2mm;
           padding: 3mm 4mm;
           font-size: 9.5pt;
         }
         .party-box--client {
-          background: rgba(255, 158, 31, 0.08);
+          background: rgba(155, 93, 255, 0.08);
           border-left-color: var(--accent);
         }
         .party-box .party-name {
@@ -423,7 +417,7 @@ export function DevisPrintView({
           font-weight: 600;
           font-size: 13px;
           cursor: pointer;
-          box-shadow: 0 6px 16px rgba(59, 139, 186, 0.4);
+          box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
         }
         .print-controls button:hover {
           background: var(--brand-dark);

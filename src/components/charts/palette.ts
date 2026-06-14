@@ -2,14 +2,14 @@
 // import the brand palette without crossing a client boundary.
 
 export const DONUT_PALETTE = [
-  "#3B8BBA", // brand
-  "#FF9E1F", // accent
+  "#7C3AED", // brand
+  "#9B5DFF", // accent
   "#1E1E24", // ink
-  "#7AB9D9", // brand light
-  "#FFC07A", // accent light
+  "#9B5DFF", // brand light
+  "#C4B5FD", // accent light
   "#5A5A66", // ink soft
-  "#2C6E96", // brand dark
-  "#E08800", // accent dark
+  "#4C1D95", // brand dark
+  "#6D28D9", // accent dark
 ];
 
 export function getDonutPalette(): string[] {

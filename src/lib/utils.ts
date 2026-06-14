@@ -6,11 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const USERNAME_DOMAIN =
-  process.env.USERNAME_EMAIL_DOMAIN ?? "areencubs.studio";
+  process.env.USERNAME_EMAIL_DOMAIN ?? "nextlevel.studio";
 
 export function usernameToEmail(username: string): string {
   // Forgive users who paste the full synthetic email instead of just the username:
-  // "heythem@areencubs.studio" -> "heythem"; "heythem" -> "heythem".
+  // "heythem@nextlevel.studio" -> "heythem"; "heythem" -> "heythem".
   const localPart = username.trim().toLowerCase().split("@")[0];
   return `${localPart}@${USERNAME_DOMAIN}`;
 }

@@ -5,7 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { DevisPrintView } from "./print-view";
 
 export const metadata = {
-  title: "Devis — Areen CUBs",
+  title: "Devis — Next Level",
 };
 
 export default async function DevisPrintPage({

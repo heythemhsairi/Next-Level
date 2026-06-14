@@ -17,7 +17,7 @@ export async function createTagAction(
 ): Promise<ActionResult> {
   const session = await requireWorkerOrAdmin();
   const name = normalize(String(formData.get("name") ?? ""));
-  const color = String(formData.get("color") ?? "#3B8BBA");
+  const color = String(formData.get("color") ?? "#7C3AED");
   if (!name) return { ok: false, error: "Le nom du tag est requis." };
   if (!COLOR_RE.test(color)) return { ok: false, error: "Couleur invalide." };
 

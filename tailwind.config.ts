@@ -6,29 +6,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Areen CUBs official brand palette
+        // Next Level brand palette — royal purple on near-black.
+        // `brand` = primary purple; `accent` reuses purple (purple is the
+        // ONLY accent in this brand). Semantic green/red stay separate.
         brand: {
-          DEFAULT: "#3B8BBA", // Blue (NCS)
-          dark: "#2C6E96",
-          light: "#E8F2F9",
+          DEFAULT: "#7C3AED", // royal purple (--nl-primary)
+          dark: "#4C1D95", // deep purple (gradients / pressed)
+          light: "#9B5DFF", // soft purple (hover / accent text)
         },
         accent: {
-          DEFAULT: "#FF9E1F", // Orange Peel
-          dark: "#E08800",
-          light: "#FFF0DB",
+          DEFAULT: "#9B5DFF", // primary-soft purple
+          dark: "#7C3AED",
+          light: "#4C1D95",
         },
         ink: {
-          DEFAULT: "#1E1E24", // Raisin Black
-          soft: "#2A2A33",
+          DEFAULT: "#0A0A0B", // app background (--nl-bg-0)
+          soft: "#121214", // surface / panel (--nl-bg-1)
         },
         cream: {
-          DEFAULT: "#FFF8F0", // Floral White
-          dark: "#F4ECE0",
+          DEFAULT: "#F5F5F7", // high-contrast text (--nl-text-hi)
+          dark: "#A1A1A8", // secondary text (--nl-text-lo)
         },
       },
       fontFamily: {
         sans: [
-          "var(--font-franklin)",
+          "var(--font-inter)",
+          "var(--font-cairo)",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -40,17 +43,17 @@ const config: Config = {
       },
       boxShadow: {
         "brand-glow":
-          "0 12px 24px -12px rgba(59, 139, 186, 0.45), 0 4px 12px -4px rgba(59, 139, 186, 0.25)",
+          "0 8px 30px rgba(124, 58, 237, 0.35), 0 4px 12px -4px rgba(124, 58, 237, 0.25)",
         "accent-glow":
-          "0 12px 24px -12px rgba(255, 158, 31, 0.45), 0 4px 12px -4px rgba(255, 158, 31, 0.25)",
+          "0 8px 30px rgba(124, 58, 237, 0.35), 0 4px 12px -4px rgba(124, 58, 237, 0.25)",
       },
       backgroundImage: {
         "brand-gradient":
-          "linear-gradient(135deg, #3B8BBA 0%, #2C6E96 50%, #1E1E24 100%)",
+          "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
         "accent-gradient":
-          "linear-gradient(135deg, #FF9E1F 0%, #E08800 100%)",
+          "linear-gradient(135deg, #9B5DFF 0%, #7C3AED 100%)",
         "hero-mesh":
-          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(59,139,186,0.18), transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, rgba(255,158,31,0.12), transparent 60%)",
+          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(124,58,237,0.18), transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, rgba(124,58,237,0.12), transparent 60%)",
       },
     },
   },

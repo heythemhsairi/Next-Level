@@ -5,7 +5,7 @@ export const DEFAULT_LOCALE: Locale = "fr";
 
 export const dict = {
   fr: {
-    appName: "Areen CUBs Studio",
+    appName: "Next Level Studio",
     tagline: "Espace interne de gestion",
     common: {
       cancel: "Annuler",
@@ -221,7 +221,7 @@ export const dict = {
       disable: "Désactiver",
     },
     teamUi: {
-      description: "L'équipe Areen CUBs — admins, salariés et freelances.",
+      description: "L'équipe Next Level — admins, salariés et freelances.",
       planning: "📅 Planning équipe",
       featured: "⭐ Employé du mois",
       members: (n: number) => (n > 1 ? `${n} membres` : `${n} membre`),
@@ -736,7 +736,7 @@ export const dict = {
     },
   },
   en: {
-    appName: "Areen CUBs Studio",
+    appName: "Next Level Studio",
     tagline: "Internal management workspace",
     common: {
       cancel: "Cancel",
@@ -950,7 +950,7 @@ export const dict = {
       disable: "Disable",
     },
     teamUi: {
-      description: "The Areen CUBs team — admins, employees, and freelancers.",
+      description: "The Next Level team — admins, employees, and freelancers.",
       planning: "📅 Team planning",
       featured: "⭐ Employee of the month",
       members: (n: number) => (n > 1 ? `${n} members` : `${n} member`),

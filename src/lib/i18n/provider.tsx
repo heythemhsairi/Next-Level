@@ -18,7 +18,7 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
-const STORAGE_KEY = "areencubs.locale";
+const STORAGE_KEY = "nextlevel.locale";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);

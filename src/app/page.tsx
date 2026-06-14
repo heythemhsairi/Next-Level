@@ -36,7 +36,7 @@ function SetupNotice() {
           <li>NEXT_PUBLIC_SUPABASE_URL</li>
           <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
           <li>SUPABASE_SERVICE_ROLE_KEY</li>
-          <li>USERNAME_EMAIL_DOMAIN = areencubs.studio</li>
+          <li>USERNAME_EMAIL_DOMAIN = nextlevel.studio</li>
         </ul>
       </div>
     </main>

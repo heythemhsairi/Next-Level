@@ -17,13 +17,12 @@ export type AppSettings = {
 };
 
 const FALLBACK: AppSettings = {
-  company_name: "Areen CUBs",
-  company_address:
-    "Résidence Nadine, Avenue Habib Bourguiba Ksibet El Médiouni Monastir 5031 Tunisie",
-  matricule_fiscal: "1823660/R/M/A/000",
-  email: "areencubs@gmail.com",
-  phone: "+216 52 148 184",
-  website: "areencubs.com",
+  company_name: "Next Level",
+  company_address: "",
+  matricule_fiscal: "",
+  email: "contact@nextlevel.studio",
+  phone: "",
+  website: "nextlevel.studio",
   tva_rate: 19,
   default_devis_object:
     "Création d'identité visuelle et supports de communication",

@@ -5,7 +5,6 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell, type NotificationRow } from "./notification-bell";
 import { useI18n } from "@/lib/i18n/provider";
 import { createClient } from "@/lib/supabase/client";
@@ -48,7 +47,7 @@ export function Topbar({
           <Link href="/dashboard" className="group flex items-center">
             <BrandLogo
               width={130}
-              className="text-brand transition-transform duration-200 group-hover:scale-[1.02]"
+              className="transition-transform duration-200 group-hover:scale-[1.02]"
             />
           </Link>
           <span className="hidden h-5 w-px bg-ink/12 dark:bg-white/10 md:block" />
@@ -58,7 +57,6 @@ export function Topbar({
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5">
           <LanguageToggle />
-          <ThemeToggle />
           <NotificationBell initial={notifications} />
           <Link
             href="/dashboard/profile"
