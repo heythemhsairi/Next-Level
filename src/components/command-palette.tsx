@@ -88,8 +88,17 @@ export function CommandPalette() {
         inputRef.current?.focus();
       }
     }
+    // Allow other components (e.g. the top-nav search bar) to open the
+    // palette by dispatching a `nl:open-search` event.
+    function onOpenEvent() {
+      setOpen(true);
+    }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("nl:open-search", onOpenEvent);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("nl:open-search", onOpenEvent);
+    };
   }, [open]);
 
   // Focus the input when opened

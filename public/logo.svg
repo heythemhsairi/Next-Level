@@ -2,13 +2,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Next Level">
   <defs>
     <linearGradient id="nl" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7C3AED"/>
-      <stop offset="1" stop-color="#4C1D95"/>
+      <stop offset="0" stop-color="#E11D2A"/>
+      <stop offset="1" stop-color="#7F1018"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#nl)"/>
+  <rect width="64" height="64" rx="14" fill="#0B0B0C"/>
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="url(#nl)"/>
   <!-- Stylized "NL" monogram -->
-  <path fill="#F5F5F7" d="M16 44V20h4.4l9.2 14.2V20H34v24h-4.4l-9.2-14.2V44H16z"/>
-  <path fill="#F5F5F7" d="M38 44V20h4.6v19.8H52V44H38z"/>
-  <circle cx="50" cy="22" r="3" fill="#9B5DFF"/>
+  <path fill="#F7F7F8" d="M16 44V20h4.4l9.2 14.2V20H34v24h-4.4l-9.2-14.2V44H16z"/>
+  <path fill="#F7F7F8" d="M38 44V20h4.6v19.8H52V44H38z"/>
+  <circle cx="50" cy="22" r="3" fill="#FF4D5E"/>
 </svg>

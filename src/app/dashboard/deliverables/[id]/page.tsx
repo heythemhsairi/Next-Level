@@ -7,6 +7,8 @@ import {
 } from "../deliverable-form";
 import type { Deliverable } from "../actions";
 import { FeedbackThread, type ThreadItem } from "./feedback-thread";
+import { VideoEmbed } from "@/components/video-embed";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type FeedbackRow = {
   id: string;
@@ -62,8 +64,18 @@ export default async function EditDeliverablePage({
     };
   });
 
+  const videoUrl = (deliverable as { video_url: string | null }).video_url;
+
   return (
     <div className="space-y-6">
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Preview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VideoEmbed url={videoUrl} />
+        </CardContent>
+      </Card>
       <DeliverableForm
         mode="edit"
         projects={options}

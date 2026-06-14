@@ -6,26 +6,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Next Level brand palette — royal purple on near-black.
-        // `brand` = primary purple; `accent` reuses purple (purple is the
-        // ONLY accent in this brand). Semantic green/red stay separate.
+        // Next Level brand palette — crimson red on black.
+        // `brand` = primary red; `accent` reuses red as the single accent.
         brand: {
-          DEFAULT: "#7C3AED", // royal purple (--nl-primary)
-          dark: "#4C1D95", // deep purple (gradients / pressed)
-          light: "#9B5DFF", // soft purple (hover / accent text)
+          DEFAULT: "#E11D2A", // crimson red (primary)
+          dark: "#7F1018", // deep blood red (gradients / pressed)
+          light: "#FF4D5E", // bright red (hover / accent text)
         },
         accent: {
-          DEFAULT: "#9B5DFF", // primary-soft purple
-          dark: "#7C3AED",
-          light: "#4C1D95",
+          DEFAULT: "#FF4D5E",
+          dark: "#E11D2A",
+          light: "#7F1018",
         },
         ink: {
-          DEFAULT: "#0A0A0B", // app background (--nl-bg-0)
-          soft: "#121214", // surface / panel (--nl-bg-1)
+          DEFAULT: "#0B0B0C", // app background (true near-black)
+          soft: "#141416", // surface / panel
         },
         cream: {
-          DEFAULT: "#F5F5F7", // high-contrast text (--nl-text-hi)
-          dark: "#A1A1A8", // secondary text (--nl-text-lo)
+          DEFAULT: "#F7F7F8", // high-contrast text
+          dark: "#A0A0A6", // secondary text
         },
       },
       fontFamily: {
@@ -43,17 +42,17 @@ const config: Config = {
       },
       boxShadow: {
         "brand-glow":
-          "0 8px 30px rgba(124, 58, 237, 0.35), 0 4px 12px -4px rgba(124, 58, 237, 0.25)",
+          "0 8px 30px rgba(225, 29, 42, 0.35), 0 4px 12px -4px rgba(225, 29, 42, 0.25)",
         "accent-glow":
-          "0 8px 30px rgba(124, 58, 237, 0.35), 0 4px 12px -4px rgba(124, 58, 237, 0.25)",
+          "0 8px 30px rgba(225, 29, 42, 0.35), 0 4px 12px -4px rgba(225, 29, 42, 0.25)",
       },
       backgroundImage: {
         "brand-gradient":
-          "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)",
+          "linear-gradient(135deg, #E11D2A 0%, #7F1018 100%)",
         "accent-gradient":
-          "linear-gradient(135deg, #9B5DFF 0%, #7C3AED 100%)",
+          "linear-gradient(135deg, #FF4D5E 0%, #E11D2A 100%)",
         "hero-mesh":
-          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(124,58,237,0.18), transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, rgba(124,58,237,0.12), transparent 60%)",
+          "radial-gradient(ellipse 80% 60% at 20% 0%, rgba(225,29,42,0.18), transparent 60%), radial-gradient(ellipse 70% 60% at 100% 0%, rgba(225,29,42,0.12), transparent 60%)",
       },
     },
   },

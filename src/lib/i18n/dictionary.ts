@@ -1257,6 +1257,10 @@ export const dict = {
       socialMedia: "Social Media",
       deliverables: "Deliverables",
       leads: "Leads",
+      messages: "Messages",
+      files: "Files",
+      announcements: "Announcements",
+      analytics: "Analytics",
       groups: {
         workspace: "Workspace",
         business: "Sales",

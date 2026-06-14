@@ -11,6 +11,7 @@ import {
   DELIVERABLE_STATUS_TONE,
   type DeliverableStatus,
 } from "../deliverable-status";
+import { VideoEmbed } from "@/components/video-embed";
 import {
   approveDeliverableAction,
   requestRevisionAction,
@@ -81,22 +82,9 @@ export function VideoCard({ video }: { video: VideoCardData }) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative aspect-video bg-ink-soft">
-        {video.thumbnail_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={video.thumbnail_url}
-            alt={video.title}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-ink/30">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4z M10 9l5 3-5 3z" />
-            </svg>
-          </div>
-        )}
-        <span className="absolute right-2 top-2">
+      <div className="relative p-3 pb-0">
+        <VideoEmbed url={video.video_url} />
+        <span className="absolute right-5 top-5">
           <Badge tone={DELIVERABLE_STATUS_TONE[video.status]}>
             {DELIVERABLE_STATUS_LABEL[video.status]}
           </Badge>
@@ -111,19 +99,6 @@ export function VideoCard({ video }: { video: VideoCardData }) {
             {video.delivered_at ? ` · Delivered ${formatDate(video.delivered_at)}` : ""}
           </p>
         </div>
-
-        {video.video_url ? (
-          <a
-            href={video.video_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-light"
-          >
-            Watch →
-          </a>
-        ) : (
-          <span className="text-sm text-ink/40">Link coming soon</span>
-        )}
 
         {/* Approve / request revision */}
         {isApproved ? (

@@ -180,9 +180,9 @@ export function DevisPrintView({
 
       <style jsx global>{`
         :root {
-          --brand: #7C3AED;
-          --brand-dark: #4C1D95;
-          --accent: #9B5DFF;
+          --brand: #E11D2A;
+          --brand-dark: #7F1018;
+          --accent: #FF4D5E;
           --ink: #1e1e24;
           --muted: #6b6b75;
           --cream: #fff8f0;
@@ -194,7 +194,7 @@ export function DevisPrintView({
           padding: 0;
           background: #f4ece0;
           color: var(--ink);
-          font-family: var(--font-franklin), ui-sans-serif, system-ui,
+          font-family: var(--font-inter), ui-sans-serif, system-ui,
             -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
           font-size: 11pt;
           line-height: 1.45;
@@ -270,14 +270,14 @@ export function DevisPrintView({
           margin-bottom: 1mm;
         }
         .party-box {
-          background: rgba(124, 58, 237, 0.08);
+          background: rgba(225, 29, 42, 0.08);
           border-left: 3px solid var(--brand);
           border-radius: 2mm;
           padding: 3mm 4mm;
           font-size: 9.5pt;
         }
         .party-box--client {
-          background: rgba(155, 93, 255, 0.08);
+          background: rgba(255, 77, 94, 0.08);
           border-left-color: var(--accent);
         }
         .party-box .party-name {
@@ -417,7 +417,7 @@ export function DevisPrintView({
           font-weight: 600;
           font-size: 13px;
           cursor: pointer;
-          box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+          box-shadow: 0 6px 16px rgba(225, 29, 42, 0.4);
         }
         .print-controls button:hover {
           background: var(--brand-dark);

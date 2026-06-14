@@ -42,7 +42,7 @@ export function BrandLogo({ className, width = 140, mono = false }: Props) {
           style={{
             width: "0.16em",
             height: "0.16em",
-            boxShadow: "0 0 0.5em rgba(124, 58, 237, 0.9)",
+            boxShadow: "0 0 0.5em rgba(225, 29, 42, 0.9)",
           }}
         />
       )}

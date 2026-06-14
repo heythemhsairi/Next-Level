@@ -22,8 +22,8 @@ export type TagRow = {
 };
 
 const PRESET_COLORS = [
-  "#7C3AED", // brand
-  "#9B5DFF", // accent
+  "#E11D2A", // brand
+  "#FF4D5E", // accent
   "#1E1E24", // ink
   "#10B981", // emerald
   "#EF4444", // red

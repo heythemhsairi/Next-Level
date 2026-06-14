@@ -4,7 +4,7 @@ export function formatDevisNumber(n: number, kind: "devis" | "facture" = "devis"
 }
 
 export function formatDt(value: number): string {
-  return `${Number(value).toLocaleString("fr-FR", {
+  return `${Number(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} DT`;
@@ -14,9 +14,9 @@ export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("fr-FR", {
+  return d.toLocaleDateString("en-US", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "short",
+    day: "numeric",
   });
 }
