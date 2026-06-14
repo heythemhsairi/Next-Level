@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { AnyUserRole } from "@/lib/utils";
+import { BrandLogo } from "@/components/brand-logo";
+import { Avatar } from "@/components/avatar";
+import { createClient } from "@/lib/supabase/client";
 
 type NavItem = {
   href: string;
@@ -185,25 +189,55 @@ const GROUP_ORDER: NavItem["group"][] = [
   "system",
 ];
 
-export function Sidebar({ role }: { role: AnyUserRole }) {
+export function Sidebar({
+  role,
+  username,
+  avatarUrl,
+  jobTitle,
+}: {
+  role: AnyUserRole;
+  username: string;
+  avatarUrl?: string | null;
+  jobTitle?: string | null;
+}) {
   const { t } = useI18n();
+  const router = useRouter();
   const pathname = usePathname();
-  const items = buildNav(role, t).filter((i) =>
-    i.rolesAllowed.includes(role),
-  );
+  const [signingOut, startSignOut] = useTransition();
+  const items = buildNav(role, t).filter((i) => i.rolesAllowed.includes(role));
+
+  function onSignOut() {
+    startSignOut(async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
+    });
+  }
 
   return (
-    <aside className="hidden w-64 shrink-0 md:block">
-      <div className="glass sticky top-[80px] m-4 mt-6 rounded-2xl p-3.5">
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] flex-col border-r border-white/8 bg-ink/70 backdrop-blur-2xl md:flex">
+      {/* Brand */}
+      <div className="flex h-[64px] shrink-0 items-center gap-2 border-b border-white/8 px-5">
+        <Link href="/dashboard" className="group flex items-center">
+          <BrandLogo
+            width={124}
+            className="transition-transform duration-200 group-hover:scale-[1.02]"
+          />
+        </Link>
+      </div>
+
+      {/* Nav (scrolls if long) */}
+      <div className="flex-1 overflow-y-auto px-3 py-4">
         {GROUP_ORDER.map((group) => {
           const groupItems = items.filter((i) => i.group === group);
           if (groupItems.length === 0) return null;
           return (
-            <div key={group} className="mb-3 last:mb-0">
-              <p className="px-3 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/35">
+            <div key={group} className="mb-5 last:mb-0">
+              <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/35">
                 {t.nav.groups[group]}
               </p>
-              <nav className="space-y-0.5">
+              <nav className="space-y-1">
                 {groupItems.map((item) => {
                   const active = isActive(pathname, item.href);
                   return (
@@ -213,33 +247,23 @@ export function Sidebar({ role }: { role: AnyUserRole }) {
                       className={cn(
                         "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
                         active
-                          ? "bg-gradient-to-r from-brand/95 to-brand-dark/95 text-white shadow-brand-glow ring-1 ring-brand-light/25"
-                          : "text-ink/65 hover:bg-white/8 hover:text-ink",
+                          ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-brand-glow ring-1 ring-brand-light/25"
+                          : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
                       )}
                     >
-                      {/* Hover sheen — only on idle items */}
                       {!active && (
                         <span
                           aria-hidden
-                          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/4 to-transparent transition-transform duration-500 group-hover:translate-x-full"
+                          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent transition-transform duration-500 group-hover:translate-x-full"
                         />
                       )}
                       {active && (
-                        <>
-                          <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 -translate-x-3.5 rounded-r bg-brand-light" />
-                          <span
-                            aria-hidden
-                            className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-brand/25 blur-xl"
-                          />
-                        </>
+                        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light shadow-[0_0_10px_rgba(124,58,237,0.8)]" />
                       )}
                       <NavIcon d={item.icon} />
                       <span className="relative flex-1 truncate">
                         {item.label}
                       </span>
-                      {active && (
-                        <span className="relative h-1.5 w-1.5 rounded-full bg-brand-light shadow-[0_0_8px_rgba(124,58,237,0.7)]" />
-                      )}
                     </Link>
                   );
                 })}
@@ -247,6 +271,31 @@ export function Sidebar({ role }: { role: AnyUserRole }) {
             </div>
           );
         })}
+      </div>
+
+      {/* User footer */}
+      <div className="shrink-0 border-t border-white/8 p-3">
+        <div className="flex items-center gap-3 rounded-xl px-2 py-2">
+          <Link href="/dashboard/profile" className="flex min-w-0 flex-1 items-center gap-3">
+            <Avatar src={avatarUrl} name={username} size="sm" />
+            <div className="min-w-0 text-xs leading-tight">
+              <p className="truncate font-semibold text-ink">@{username}</p>
+              <p className="truncate text-ink/50">{jobTitle ?? t.roles[role]}</p>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={onSignOut}
+            disabled={signingOut}
+            title={t.nav.logout}
+            aria-label={t.nav.logout}
+            className="shrink-0 rounded-lg p-2 text-ink/45 transition-colors hover:bg-white/[0.06] hover:text-ink disabled:opacity-50"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" />
+            </svg>
+          </button>
+        </div>
       </div>
     </aside>
   );
@@ -260,24 +309,31 @@ export function MobileNav({ role }: { role: AnyUserRole }) {
   );
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-white/30 bg-white/55 px-3 py-2 backdrop-blur md:hidden">
-      {items.map((item) => {
-        const active = isActive(pathname, item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-              active
-                ? "bg-brand text-white shadow-sm"
-                : "text-ink/65 hover:bg-white/70",
-            )}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="sticky top-0 z-40 border-b border-white/8 bg-ink/70 backdrop-blur-2xl md:hidden">
+      <div className="flex h-[56px] items-center px-4">
+        <Link href="/dashboard">
+          <BrandLogo width={110} />
+        </Link>
+      </div>
+      <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
+        {items.map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                active
+                  ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-sm"
+                  : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
+              )}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
