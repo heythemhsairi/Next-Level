@@ -1,7 +1,6 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar, MobileNav } from "@/components/dashboard/sidebar";
-import { Topbar } from "@/components/dashboard/topbar";
+import { TopNav } from "@/components/dashboard/top-nav";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
 
@@ -45,26 +44,21 @@ export default async function DashboardLayout({
         <div className="absolute -bottom-48 left-1/3 h-[34rem] w-[34rem] rounded-full bg-brand-dark/25 blur-[130px]" />
       </div>
 
-      {/* Full-height fixed sidebar (desktop). Owns brand + nav + user. */}
-      <Sidebar
+      {/* Single top bar: brand + horizontal nav + notifications + user. */}
+      <TopNav
         role={session.role}
         username={session.username}
         avatarUrl={session.avatar_url}
         jobTitle={session.job_title}
+        notifications={notifications}
       />
 
-      {/* Mobile top nav (sidebar is hidden on small screens). */}
-      <MobileNav role={session.role} />
-
-      {/* Content column is offset by the sidebar width on desktop. */}
-      <div className="md:pl-[260px]">
-        <Topbar notifications={notifications} />
-        <main className="reveal min-w-0 px-4 py-6 sm:px-6 md:px-10 md:py-9">
-          <div className="mx-auto w-full max-w-[1200px] space-y-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      {/* Full-width content canvas below the bar. */}
+      <main className="reveal px-4 py-7 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1280px] space-y-8">
+          {children}
+        </div>
+      </main>
 
       <CommandPalette />
     </div>
