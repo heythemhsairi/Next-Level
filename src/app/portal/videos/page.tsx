@@ -1,15 +1,10 @@
 import { requireClient } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/format";
-import {
-  DELIVERABLE_STATUS_LABEL,
-  DELIVERABLE_STATUS_TONE,
-  type DeliverableStatus,
-} from "../deliverable-status";
+import { VideoCard, type VideoCardData, type FeedbackItem } from "./video-card";
+import type { DeliverableStatus } from "../deliverable-status";
 
-type Video = {
+type DeliverableRow = {
   id: string;
   title: string;
   status: DeliverableStatus;
@@ -19,17 +14,31 @@ type Video = {
   projects: { name: string } | { name: string }[] | null;
 };
 
-function projectName(p: Video["projects"]): string | null {
+type FeedbackRow = {
+  id: string;
+  deliverable_id: string;
+  body: string;
+  created_at: string;
+  author_id: string | null;
+  profiles: { full_name: string | null; username: string } | { full_name: string | null; username: string }[] | null;
+};
+
+function projectName(p: DeliverableRow["projects"]): string | null {
   const row = Array.isArray(p) ? p[0] : p;
   return row?.name ?? null;
 }
 
+function authorName(p: FeedbackRow["profiles"]): string {
+  const row = Array.isArray(p) ? p[0] : p;
+  return row?.full_name ?? (row?.username ? `@${row.username}` : "Team");
+}
+
 export default async function PortalVideos() {
-  await requireClient();
+  const session = await requireClient();
   const supabase = await createClient();
 
   // RLS returns only client_visible deliverables on this client's projects.
-  const { data } = await supabase
+  const { data: deliverables } = await supabase
     .from("deliverables")
     .select(
       "id, title, status, video_url, thumbnail_url, delivered_at, projects(name)",
@@ -37,7 +46,43 @@ export default async function PortalVideos() {
     .eq("client_visible", true)
     .order("created_at", { ascending: false });
 
-  const videos = (data ?? []) as Video[];
+  const rows = (deliverables ?? []) as DeliverableRow[];
+
+  // Fetch all feedback for these deliverables in one query.
+  const ids = rows.map((r) => r.id);
+  let feedbackByDeliverable = new Map<string, FeedbackItem[]>();
+  if (ids.length > 0) {
+    const { data: fb } = await supabase
+      .from("deliverable_feedback")
+      .select("id, deliverable_id, body, created_at, author_id, profiles:author_id(full_name, username)")
+      .in("deliverable_id", ids)
+      .order("created_at", { ascending: true });
+
+    feedbackByDeliverable = ((fb ?? []) as FeedbackRow[]).reduce((map, f) => {
+      const item: FeedbackItem = {
+        id: f.id,
+        body: f.body,
+        created_at: f.created_at,
+        author_name: authorName(f.profiles),
+        is_mine: f.author_id === session.id,
+      };
+      const list = map.get(f.deliverable_id) ?? [];
+      list.push(item);
+      map.set(f.deliverable_id, list);
+      return map;
+    }, new Map<string, FeedbackItem[]>());
+  }
+
+  const videos: VideoCardData[] = rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    status: r.status,
+    video_url: r.video_url,
+    thumbnail_url: r.thumbnail_url,
+    delivered_at: r.delivered_at,
+    project_name: projectName(r.projects),
+    feedback: feedbackByDeliverable.get(r.id) ?? [],
+  }));
 
   return (
     <div className="space-y-6">
@@ -46,7 +91,8 @@ export default async function PortalVideos() {
           My Videos
         </h1>
         <p className="mt-1 text-sm text-ink/55">
-          Every video we've produced for you. Click “Watch” to open the link.
+          Watch each video, then approve it or request changes — your team gets
+          notified right away.
         </p>
       </div>
 
@@ -58,59 +104,9 @@ export default async function PortalVideos() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {videos.map((v) => (
-            <Card key={v.id} className="overflow-hidden">
-              <div className="relative aspect-video bg-ink-soft">
-                {v.thumbnail_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={v.thumbnail_url}
-                    alt={v.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-ink/30">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4z M10 9l5 3-5 3z" />
-                    </svg>
-                  </div>
-                )}
-                <span className="absolute right-2 top-2">
-                  <Badge tone={DELIVERABLE_STATUS_TONE[v.status]}>
-                    {DELIVERABLE_STATUS_LABEL[v.status]}
-                  </Badge>
-                </span>
-              </div>
-              <CardContent className="space-y-2 p-4">
-                <p className="font-semibold text-ink/90">{v.title}</p>
-                <p className="text-xs text-ink/45">
-                  {projectName(v.projects) ?? "—"}
-                  {v.delivered_at
-                    ? ` · Delivered ${formatDate(v.delivered_at)}`
-                    : ""}
-                </p>
-                {v.video_url ? (
-                  <a
-                    href={v.video_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-light"
-                  >
-                    Watch →
-                  </a>
-                ) : (
-                  <span className="text-sm text-ink/40">Link coming soon</span>
-                )}
-              </CardContent>
-            </Card>
+            <VideoCard key={v.id} video={v} />
           ))}
         </div>
       )}
