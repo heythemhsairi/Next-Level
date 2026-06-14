@@ -177,7 +177,7 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
             <Input
               name="job_title"
               defaultValue={member.job_title ?? ""}
-              placeholder="Ex. Graphic Designer / Editor"
+              placeholder="e.g. Video Editor"
             />
           </Field>
           <Field label={t.team.form.role}>

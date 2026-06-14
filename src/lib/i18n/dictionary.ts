@@ -1230,7 +1230,7 @@ export const dict = {
     login: {
       title: "Sign in",
       username: "Username",
-      usernameHint: "Just the part before @ (e.g. heythem)",
+      usernameHint: "Just the part before @",
       password: "Password",
       submit: "Sign in",
       errorInvalid: "Invalid credentials.",

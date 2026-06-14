@@ -47,11 +47,11 @@ export function TeamNewClient() {
                 name="username"
                 required
                 autoCapitalize="none"
-                placeholder="ala"
+                placeholder="username"
               />
             </Field>
             <Field label={t.team.form.fullName}>
-              <Input name="full_name" required placeholder="Ala Ben Aïcha" />
+              <Input name="full_name" required placeholder="Full name" />
             </Field>
             <Field label={t.team.form.password} hint={t.team.form.passwordHint}>
               <Input
@@ -59,7 +59,7 @@ export function TeamNewClient() {
                 type="text"
                 required
                 minLength={8}
-                placeholder="MinimumHuit!"
+                placeholder="At least 8 characters"
               />
             </Field>
             <Field label={t.team.form.role}>
@@ -69,10 +69,10 @@ export function TeamNewClient() {
                 <option value="sales">{t.roles.sales}</option>
               </Select>
             </Field>
-            <Field label="Titre / poste (optionnel)">
+            <Field label="Title / position (optional)">
               <Input
                 name="job_title"
-                placeholder="Ex. Graphic Designer / Editor"
+                placeholder="e.g. Video Editor"
               />
             </Field>
 
