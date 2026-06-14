@@ -50,13 +50,6 @@ export default async function DashboardPage() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayIso = today.toISOString().slice(0, 10);
-  // Work-schedule window: 3 months centered on current
-  const scheduleStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-    .toISOString()
-    .slice(0, 10);
-  const scheduleEnd = new Date(today.getFullYear(), today.getMonth() + 2, 0)
-    .toISOString()
-    .slice(0, 10);
 
   // ---- Counts (all roles, RLS already filters freelancer to own rows) ----
   const activeProjects = await safe(
@@ -412,25 +405,6 @@ export default async function DashboardPage() {
     "upcomingTasks",
   );
 
-  // ---- My work schedule (3-month window around current) ----
-  const myWorkSchedule: Record<string, "office" | "home"> = await safe(
-    async () => {
-      const { data } = await supabase
-        .from("work_schedule")
-        .select("date, location")
-        .eq("user_id", session.id)
-        .gte("date", scheduleStart)
-        .lte("date", scheduleEnd);
-      const out: Record<string, "office" | "home"> = {};
-      for (const row of data ?? []) {
-        out[row.date as string] = row.location as "office" | "home";
-      }
-      return out;
-    },
-    {} as Record<string, "office" | "home">,
-    "workSchedule",
-  );
-
   // ---- Stale "sent" devis (admin) — for follow-up banner ----
   const staleDevis: StaleDevisRow[] = isAdmin
     ? await safe(
@@ -603,7 +577,6 @@ export default async function DashboardPage() {
         recentDevis={recentDevis}
         upcomingTasks={upcomingTasks}
         featuredEmployee={featuredEmployee}
-        workSchedule={myWorkSchedule}
       />
     </div>
   );

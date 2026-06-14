@@ -63,10 +63,10 @@ export function TeamNewClient() {
               />
             </Field>
             <Field label={t.team.form.role}>
-              <Select name="role" defaultValue="worker">
+              <Select name="role" defaultValue="editor">
                 <option value="admin">{t.roles.admin}</option>
-                <option value="worker">{t.roles.worker}</option>
-                <option value="freelancer">{t.roles.freelancer}</option>
+                <option value="editor">{t.roles.editor}</option>
+                <option value="sales">{t.roles.sales}</option>
               </Select>
             </Field>
             <Field label="Titre / poste (optionnel)">

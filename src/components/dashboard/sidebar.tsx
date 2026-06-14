@@ -29,6 +29,10 @@ const ICONS: Record<string, string> = {
     "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z M14 2v6h6 M9 12l2 2 4-4",
   finance: "M3 3v18h18 M7 14l4-4 4 4 5-5",
   services: "M20 7l-9 9-5-5",
+  deliverables:
+    "M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4z M10 9l5 3-5 3z",
+  leads:
+    "M22 12h-4l-3 9L9 3l-3 9H2",
   team: "M17 21v-2a4 4 0 0 0-3-3.87 M9 21v-2a4 4 0 0 1 3-3.87 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87",
   planning:
     "M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z M16 3v4 M8 3v4 M3 11h18 M8 15h2 M14 15h2 M8 19h2",
@@ -42,68 +46,88 @@ function buildNav(
   role: AnyUserRole,
   t: ReturnType<typeof useI18n>["t"],
 ): NavItem[] {
+  // Roles: admin (everything) · editor (production: tasks, projects,
+  // deliverables) · sales (pipeline: leads, clients, money). Legacy
+  // worker/freelancer are treated as editors.
+  const editors: AnyUserRole[] = ["admin", "editor", "worker", "freelancer"];
+  const salesRoles: AnyUserRole[] = ["admin", "sales"];
+
   return [
     {
       href: "/dashboard",
       label: t.nav.overview,
       icon: ICONS.overview,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: ["admin", "editor", "sales", "worker", "freelancer"],
       group: "workspace",
     },
     {
       href: "/dashboard/tasks",
-      label: role === "freelancer" ? t.nav.myTasks : t.nav.tasks,
+      label: t.nav.tasks,
       icon: ICONS.tasks,
-      rolesAllowed: ["admin", "worker", "freelancer"],
+      rolesAllowed: editors,
       group: "workspace",
     },
     {
-      href: "/dashboard/calendar",
-      label: t.nav.calendar,
-      icon: ICONS.calendar,
-      rolesAllowed: ["admin", "worker", "freelancer"],
-      group: "workspace",
-    },
-    {
-      href: "/dashboard/social-media",
-      label: t.nav.socialMedia,
-      icon: ICONS.socialMedia,
-      rolesAllowed: ["admin", "worker"],
-      group: "workspace",
-    },
-    {
-      href: "/dashboard/clients",
-      label: t.nav.clients,
-      icon: ICONS.clients,
-      rolesAllowed: ["admin", "worker"],
+      href: "/dashboard/deliverables",
+      label: t.nav.deliverables,
+      icon: ICONS.deliverables,
+      rolesAllowed: editors,
       group: "workspace",
     },
     {
       href: "/dashboard/projects",
       label: t.nav.projects,
       icon: ICONS.projects,
-      rolesAllowed: ["admin", "worker"],
+      rolesAllowed: ["admin", "editor", "sales", "worker", "freelancer"],
       group: "workspace",
+    },
+    {
+      href: "/dashboard/calendar",
+      label: t.nav.calendar,
+      icon: ICONS.calendar,
+      rolesAllowed: editors,
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/social-media",
+      label: t.nav.socialMedia,
+      icon: ICONS.socialMedia,
+      rolesAllowed: ["admin", "editor", "worker"],
+      group: "workspace",
+    },
+    {
+      href: "/dashboard/leads",
+      label: t.nav.leads,
+      icon: ICONS.leads,
+      rolesAllowed: salesRoles,
+      group: "business",
+    },
+    {
+      href: "/dashboard/clients",
+      label: t.nav.clients,
+      icon: ICONS.clients,
+      rolesAllowed: salesRoles,
+      group: "business",
     },
     {
       href: "/dashboard/devis",
       label: t.nav.devis,
       icon: ICONS.devis,
-      rolesAllowed: ["admin"],
+      rolesAllowed: salesRoles,
       group: "business",
     },
     {
       href: "/dashboard/factures",
       label: t.nav.factures,
       icon: ICONS.factures,
-      rolesAllowed: ["admin"],
+      rolesAllowed: salesRoles,
       group: "business",
     },
     {
       href: "/dashboard/finance",
       label: t.nav.finance,
       icon: ICONS.finance,
-      rolesAllowed: ["admin"],
+      rolesAllowed: salesRoles,
       group: "business",
     },
     {
@@ -117,13 +141,6 @@ function buildNav(
       href: "/dashboard/team",
       label: t.nav.team,
       icon: ICONS.team,
-      rolesAllowed: ["admin"],
-      group: "team",
-    },
-    {
-      href: "/dashboard/team/planning",
-      label: t.nav.planning,
-      icon: ICONS.planning,
       rolesAllowed: ["admin"],
       group: "team",
     },
@@ -196,7 +213,7 @@ export function Sidebar({ role }: { role: AnyUserRole }) {
                       className={cn(
                         "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
                         active
-                          ? "bg-gradient-to-r from-brand/95 to-brand-dark/95 text-white shadow-brand-glow ring-1 ring-cyan-300/20"
+                          ? "bg-gradient-to-r from-brand/95 to-brand-dark/95 text-white shadow-brand-glow ring-1 ring-brand-light/25"
                           : "text-ink/65 hover:bg-white/8 hover:text-ink",
                       )}
                     >
@@ -209,10 +226,10 @@ export function Sidebar({ role }: { role: AnyUserRole }) {
                       )}
                       {active && (
                         <>
-                          <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 -translate-x-3.5 rounded-r bg-cyan-300" />
+                          <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 -translate-x-3.5 rounded-r bg-brand-light" />
                           <span
                             aria-hidden
-                            className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-cyan-400/25 blur-xl"
+                            className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-brand/25 blur-xl"
                           />
                         </>
                       )}
@@ -221,7 +238,7 @@ export function Sidebar({ role }: { role: AnyUserRole }) {
                         {item.label}
                       </span>
                       {active && (
-                        <span className="relative h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+                        <span className="relative h-1.5 w-1.5 rounded-full bg-brand-light shadow-[0_0_8px_rgba(124,58,237,0.7)]" />
                       )}
                     </Link>
                   );

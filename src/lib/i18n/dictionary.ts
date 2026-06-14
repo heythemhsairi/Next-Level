@@ -1255,9 +1255,11 @@ export const dict = {
       profile: "My profile",
       logout: "Sign out",
       socialMedia: "Social Media",
+      deliverables: "Deliverables",
+      leads: "Leads",
       groups: {
         workspace: "Workspace",
-        business: "Business",
+        business: "Sales",
         team: "Team",
         system: "System",
       },

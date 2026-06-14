@@ -6,6 +6,10 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { ProjectDetailActions } from "./detail-actions";
 import { ProjectDetailsCard, TasksSectionHeader } from "./detail-card";
 import { TasksKanban, type TaskCard } from "../../tasks/tasks-kanban";
+import {
+  DeliverablesSection,
+  type ProjectDeliverable,
+} from "./deliverables-section";
 
 export default async function ProjectDetailPage({
   params,
@@ -48,6 +52,24 @@ export default async function ProjectDetailPage({
       tags: (tk.tags as string[] | null) ?? [],
     };
   });
+
+  const { data: deliverablesData } = await supabase
+    .from("deliverables")
+    .select("id, project_id, title, video_url, status, client_visible")
+    .eq("project_id", id)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  const deliverables: ProjectDeliverable[] = (deliverablesData ?? []).map(
+    (d) => ({
+      id: d.id,
+      project_id: d.project_id,
+      title: d.title,
+      video_url: d.video_url,
+      status: d.status,
+      client_visible: d.client_visible,
+    }),
+  );
 
   const client = Array.isArray(project.clients)
     ? project.clients[0]
@@ -104,6 +126,13 @@ export default async function ProjectDetailPage({
           />
           <TasksKanban tasks={taskCards} compact />
         </div>
+
+        {session.role !== "freelancer" && (
+          <DeliverablesSection
+            projectId={project.id}
+            deliverables={deliverables}
+          />
+        )}
       </div>
     </div>
   );

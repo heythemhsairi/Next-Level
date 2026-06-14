@@ -9,7 +9,6 @@ import { CountUp } from "@/components/charts/count-up";
 import { TrendPill } from "@/components/charts/trend-pill";
 import { Donut, DonutLegend, type DonutSlice } from "@/components/charts/donut";
 import { MonthlyBars, type BarPoint } from "@/components/charts/bars";
-import { WorkCalendar } from "@/components/work-calendar";
 import { formatDevisNumber, formatDt, formatDate } from "@/lib/format";
 import type { AnyUserRole } from "@/lib/utils";
 
@@ -71,7 +70,6 @@ type Props = {
   recentDevis: RecentDevis[];
   upcomingTasks: UpcomingTask[];
   featuredEmployee: Featured;
-  workSchedule: Record<string, "office" | "home">;
 };
 
 function formatMonth(
@@ -117,7 +115,6 @@ export function OverviewClient({
   recentDevis,
   upcomingTasks,
   featuredEmployee,
-  workSchedule,
 }: Props) {
   const { t } = useI18n();
   const isAdmin = role === "admin";
@@ -220,8 +217,8 @@ export function OverviewClient({
             )}
           </section>
 
-          <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-            <Card className="lg:col-span-3">
+          <section className="grid grid-cols-1 gap-5">
+            <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{t.overview.myTasks}</CardTitle>
@@ -235,18 +232,6 @@ export function OverviewClient({
               </CardHeader>
               <CardContent>
                 <MyTasksList rows={upcomingTasks} />
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>{t.overview.myPlanning}</CardTitle>
-                <p className="text-xs text-ink/55">
-                  {t.overview.myPlanningHint}
-                </p>
-              </CardHeader>
-              <CardContent>
-                <WorkCalendar initial={workSchedule} />
               </CardContent>
             </Card>
           </section>

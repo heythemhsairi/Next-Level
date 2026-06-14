@@ -187,8 +187,8 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
               disabled={isSelf}
             >
               <option value="admin">{t.roles.admin}</option>
-              <option value="worker">{t.roles.worker}</option>
-              <option value="freelancer">{t.roles.freelancer}</option>
+              <option value="editor">{t.roles.editor}</option>
+              <option value="sales">{t.roles.sales}</option>
             </Select>
             {isSelf && (
               <p className="text-xs text-ink/50">
