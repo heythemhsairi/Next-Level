@@ -2,13 +2,11 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
-import {
-  StaleDevisBanner,
-  type StaleDevisRow,
-} from "@/components/stale-devis-banner";
+import { type StaleDevisRow } from "@/components/stale-devis-banner";
 import { PriorityPinsSection } from "./priorities-section";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TodaySummary } from "@/components/dashboard/today-summary";
+import { ActionCenter, type ActionItem } from "@/components/dashboard/action-center";
 
 // Defensive helper so one failing query can't take down the whole page.
 async function safe<T>(
@@ -496,6 +494,31 @@ export default async function DashboardPage() {
     "priorityPins",
   );
 
+  // ---- Action center signals (admin/staff): things that need attention ----
+  const deliverablesInReview: number = await safe(
+    async () => {
+      const { count } = await supabase
+        .from("deliverables")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "in_review");
+      return count ?? 0;
+    },
+    0,
+    "deliverablesInReview",
+  );
+
+  const revisionRequested: number = await safe(
+    async () => {
+      const { count } = await supabase
+        .from("deliverables")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "revision_requested");
+      return count ?? 0;
+    },
+    0,
+    "revisionRequested",
+  );
+
   // ---- Featured employee ----
   type FeaturedEmployee = {
     username: string;
@@ -528,12 +551,52 @@ export default async function DashboardPage() {
     "featured",
   );
 
+  // Build the action-center tiles (only nonzero ones render).
+  const actionItems: ActionItem[] = [
+    {
+      label: "Overdue invoices",
+      count: staleDevis.length,
+      href: "/dashboard/factures",
+      urgent: true,
+      icon: (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      ),
+    },
+    {
+      label: "Revisions requested",
+      count: revisionRequested,
+      href: "/dashboard/deliverables",
+      urgent: true,
+      icon: <path d="M3 2v6h6 M3 13a9 9 0 1 0 3-7.7L3 8" />,
+    },
+    {
+      label: "Awaiting review",
+      count: deliverablesInReview,
+      href: "/dashboard/deliverables",
+      icon: <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />,
+    },
+    {
+      label: "Overdue tasks",
+      count: summaryOverdue,
+      href: "/dashboard/tasks",
+      urgent: true,
+      icon: <path d="M4 5h16 M4 12h16 M4 19h10 M19 17l2 2 3-4" />,
+    },
+    {
+      label: "Tasks due today",
+      count: summaryDueToday,
+      href: "/dashboard/tasks",
+      icon: <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z M4 9h16 M8 3v3 M16 3v3" />,
+    },
+  ];
+
   return (
     <div className="space-y-7">
-      {isAdmin && staleDevis.length > 0 && (
-        <StaleDevisBanner rows={staleDevis} />
-      )}
       <QuickActions role={session.role} />
+      <ActionCenter items={actionItems} />
       <TodaySummary
         overdueCount={summaryOverdue}
         dueTodayCount={summaryDueToday}
