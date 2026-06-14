@@ -1,29 +1,36 @@
-# Areen CUBs Studio
+# Next Level Studio
 
-Internal management web app for **Areen CUBs** marketing agency.
+A two-sided platform for a **video-editing team** — built dark, English-only,
+royal-purple on near-black.
 
-- **3 dashboards** — admin (CEO/CTO/CMO), full-time worker, freelancer
-- **Task management** across clients & projects (Phase 1)
-- **Quick devis generator** matching the Areen CUBs PDF template (Phase 2)
-- **Revenue & payment tracking** (Phase 3)
+**Team workspace** (`/dashboard`):
+- **admin** — full access
+- **editor** — video editors: tasks, projects, and **deliverables** (the videos they produce)
+- **sales** — commercial team: **leads** pipeline, their **clients**, quotes/invoices, finance
 
-See [`STRATEGY.md`](./STRATEGY.md) for the full plan.
+**Client portal** (`/portal`):
+- Each client logs in (real email) to see **their videos** (with watch links),
+  **their payments/invoices**, and **their tasks** — read-only, isolated by RLS.
+
+Sales/admin create a client's login from the client detail page.
 
 ---
 
 ## Status
 
-🟢 **Phase 0 scaffolded** (2026-05-06)
+🟢 **Pivot complete** — two-sided platform live.
 
 What works now:
-- Next.js 15 + TypeScript + Tailwind app, ready to deploy
-- FR / EN language toggle (persisted in localStorage)
-- Supabase auth with **username + password** (synthetic email under the hood)
-- Auth middleware protects every route except `/login`
-- Role-aware `/dashboard` page that branches into Admin / Worker / Freelancer views (placeholders)
-- Full SQL schema + RLS policies + service catalog as Supabase CLI migrations — applied via `npm run db:push`
-
-Next: Phase 1 (clients + projects + tasks CRUD).
+- Next.js 15 + TypeScript + Tailwind, deployed on Vercel
+- English-only UI in the Next Level dark/purple brand system
+- One login page: **email → client portal**, **username → team dashboard**
+  (middleware keeps each role on its own side)
+- Roles `admin · editor · sales · client` with full RLS isolation
+- Team: tasks, projects, deliverables, leads (→ convert to client), clients,
+  quotes/invoices, finance, services, team
+- Client portal: home, my videos, payments, tasks, account
+- Full SQL schema + RLS as Supabase CLI migrations — applied via `npm run db:push`
+  or `node scripts/apply-migrations.mjs`
 
 ---
 
