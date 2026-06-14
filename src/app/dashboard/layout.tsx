@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { TopNav } from "@/components/dashboard/top-nav";
+import { SideNav } from "@/components/dashboard/side-nav";
+import { TopBar } from "@/components/dashboard/top-bar";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
 
@@ -44,21 +45,23 @@ export default async function DashboardLayout({
         <div className="absolute -bottom-48 left-1/3 h-[34rem] w-[34rem] rounded-full bg-brand-dark/25 blur-[130px]" />
       </div>
 
-      {/* Single top bar: brand + horizontal nav + notifications + user. */}
-      <TopNav
+      {/* Fixed left sidebar (desktop) — brand + grouped nav + user. */}
+      <SideNav
         role={session.role}
         username={session.username}
         avatarUrl={session.avatar_url}
         jobTitle={session.job_title}
-        notifications={notifications}
       />
 
-      {/* Full-width content canvas below the bar. */}
-      <main className="reveal px-4 py-7 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-[1280px] space-y-8">
-          {children}
-        </div>
-      </main>
+      {/* Content column, offset by the sidebar on desktop. */}
+      <div className="lg:pl-[252px]">
+        <TopBar role={session.role} notifications={notifications} />
+        <main className="reveal px-4 py-7 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-[1280px] space-y-8">
+            {children}
+          </div>
+        </main>
+      </div>
 
       <CommandPalette />
     </div>
