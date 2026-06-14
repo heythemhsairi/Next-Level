@@ -75,9 +75,9 @@ export function TasksKanban({
         });
         toast.error(res.error);
       } else if (to === "done") {
-        toast.success("Tâche terminée");
+        toast.success("Task completed");
       } else {
-        toast.success("Statut mis à jour");
+        toast.success("Status updated");
       }
     });
   }
@@ -166,7 +166,7 @@ export function TasksKanban({
                       : "border-ink/12 bg-white/30 text-ink/35",
                   )}
                 >
-                  {isOver ? "Déposez ici" : "—"}
+                  {isOver ? "Drop here" : "—"}
                 </div>
               )}
             </div>

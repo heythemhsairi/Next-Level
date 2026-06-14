@@ -11,7 +11,7 @@ export async function updateMyProfileAction(
 ): Promise<ActionResult> {
   const session = await requireSession();
   const fullName = String(formData.get("full_name") ?? "").trim();
-  if (!fullName) return { ok: false, error: "Nom complet requis." };
+  if (!fullName) return { ok: false, error: "Full name required." };
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -31,13 +31,13 @@ export async function uploadMyAvatarAction(
   const session = await requireSession();
   const file = formData.get("avatar");
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Fichier manquant." };
+    return { ok: false, error: "File missing." };
   }
   if (file.size > 4 * 1024 * 1024) {
-    return { ok: false, error: "Image trop grande (max 4 Mo)." };
+    return { ok: false, error: "Image too large (max 4 MB)." };
   }
   if (!file.type.startsWith("image/")) {
-    return { ok: false, error: "Le fichier doit être une image." };
+    return { ok: false, error: "The file must be an image." };
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
@@ -85,7 +85,7 @@ export async function changeMyPasswordAction(
   const session = await requireSession();
   const password = String(formData.get("password") ?? "");
   if (password.length < 8) {
-    return { ok: false, error: "Mot de passe minimum 8 caractères." };
+    return { ok: false, error: "Password must be at least 8 characters." };
   }
 
   const admin = createAdminClient();

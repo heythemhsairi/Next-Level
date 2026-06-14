@@ -13,7 +13,7 @@ export async function togglePriorityPinAction(
   taskId: string,
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
 
   const supabase = await createClient();
   // Already pinned?
@@ -39,7 +39,7 @@ export async function togglePriorityPinAction(
     if ((count ?? 0) >= MAX_PINS) {
       return {
         ok: false,
-        error: `Vous avez déjà ${MAX_PINS} priorités épinglées. Désépinglez-en une d'abord.`,
+        error: `You already have ${MAX_PINS} pinned priorities. Unpin one first.`,
       };
     }
     const { error } = await supabase

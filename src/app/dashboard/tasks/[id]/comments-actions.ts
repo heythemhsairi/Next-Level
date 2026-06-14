@@ -31,10 +31,10 @@ export async function addCommentAction(
   const taskId = String(formData.get("task_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
 
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
-  if (!body) return { ok: false, error: "Le commentaire est vide." };
+  if (!taskId) return { ok: false, error: "Task not found." };
+  if (!body) return { ok: false, error: "Comment is empty." };
   if (body.length > MAX_LEN) {
-    return { ok: false, error: "Commentaire trop long (max 4000 caractères)." };
+    return { ok: false, error: "Comment too long (max 4000 characters)." };
   }
 
   const supabase = await createClient();
@@ -78,7 +78,7 @@ export async function addCommentAction(
     await notify(
       task.assignee_id,
       "task_comment",
-      `Nouveau commentaire sur « ${task.title} »`,
+      `New comment on "${task.title}"`,
       `/dashboard/tasks/${taskId}`,
     );
   }
@@ -88,7 +88,7 @@ export async function addCommentAction(
     await notifyMany(
       mentionUserIds,
       "task_mention",
-      `${session.full_name ?? "@" + session.username} vous a mentionné sur « ${task?.title ?? "une tâche"} »`,
+      `${session.full_name ?? "@" + session.username} mentioned you on "${task?.title ?? "a task"}"`,
       `/dashboard/tasks/${taskId}`,
     );
   }
@@ -103,7 +103,7 @@ export async function deleteCommentAction(
   const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   const taskId = String(formData.get("task_id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("task_comments").delete().eq("id", id);

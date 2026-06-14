@@ -82,7 +82,7 @@ export function DevisBuilder(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const docLabel = props.kind === "facture" ? "Facture" : "Devis";
+  const docLabel = props.kind === "facture" ? "Invoice" : "Quote";
 
   const [clientId, setClientId] = useState(
     props.mode === "edit"
@@ -99,8 +99,8 @@ export function DevisBuilder(props: Props) {
     props.mode === "edit"
       ? (props.devis.object ?? "")
       : props.kind === "facture"
-        ? "Facture pour services rendus"
-        : "Création d'identité visuelle et supports de communication",
+        ? "Invoice for services rendered"
+        : "Visual identity design and communication materials",
   );
   const [notes, setNotes] = useState(
     props.mode === "edit" ? (props.devis.notes ?? "") : "",
@@ -228,12 +228,12 @@ export function DevisBuilder(props: Props) {
       <PageHeader
         title={
           props.mode === "create"
-            ? `Nouveau ${docLabel.toLowerCase()}`
-            : `Modifier ${docLabel.toLowerCase()}`
+            ? `New ${docLabel.toLowerCase()}`
+            : `Edit ${docLabel.toLowerCase()}`
         }
         subtitle={
           <Link href={baseListUrl} className="hover:underline">
-            ← {props.kind === "facture" ? "Factures" : "Devis"}
+            ← {props.kind === "facture" ? "Invoices" : "Quotes"}
           </Link>
         }
       />
@@ -241,7 +241,7 @@ export function DevisBuilder(props: Props) {
       <form onSubmit={onSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Informations</CardTitle>
+            <CardTitle>Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -251,7 +251,7 @@ export function DevisBuilder(props: Props) {
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
                 >
-                  <option value="">— Choisir —</option>
+                  <option value="">— Choose —</option>
                   {props.clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -259,15 +259,15 @@ export function DevisBuilder(props: Props) {
                   ))}
                 </Select>
               </Field>
-              <Field label="Objet">
+              <Field label="Subject">
                 <Input
                   value={object}
                   onChange={(e) => setObject(e.target.value)}
                 />
               </Field>
               <Field
-                label={`Numéro ${docLabel}${
-                  props.mode === "create" ? " (auto si vide)" : ""
+                label={`${docLabel} number${
+                  props.mode === "create" ? " (auto if empty)" : ""
                 }`}
               >
                 <Input
@@ -275,7 +275,7 @@ export function DevisBuilder(props: Props) {
                   min="1"
                   step="1"
                   inputMode="numeric"
-                  placeholder={props.mode === "create" ? "Automatique" : ""}
+                  placeholder={props.mode === "create" ? "Automatic" : ""}
                   value={docNumber}
                   onChange={(e) => setDocNumber(e.target.value)}
                 />
@@ -288,7 +288,7 @@ export function DevisBuilder(props: Props) {
                   onChange={(e) => setDate(e.target.value)}
                 />
               </Field>
-              <Field label="Échéance">
+              <Field label="Due date">
                 <Input
                   type="date"
                   required
@@ -302,14 +302,14 @@ export function DevisBuilder(props: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Lignes</CardTitle>
+            <CardTitle>Lines</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="hidden grid-cols-12 gap-2 text-xs font-medium uppercase tracking-wide text-ink/50 md:grid">
               <div className="col-span-5">Description</div>
-              <div className="col-span-2">P.U. (DT)</div>
-              <div className="col-span-1">Qté</div>
-              <div className="col-span-2 text-right">Total ligne</div>
+              <div className="col-span-2">Unit price (DT)</div>
+              <div className="col-span-1">Qty</div>
+              <div className="col-span-2 text-right">Line total</div>
               <div className="col-span-1 text-center">Bonus</div>
               <div className="col-span-1" />
             </div>
@@ -331,7 +331,7 @@ export function DevisBuilder(props: Props) {
                       }
                     }}
                   >
-                    <option value="">— Service catalogue —</option>
+                    <option value="">— Catalog service —</option>
                     {props.services.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name_fr} ({s.default_price_dt} DT)
@@ -398,9 +398,9 @@ export function DevisBuilder(props: Props) {
                     type="button"
                     onClick={() => removeRow(item.key)}
                     className="text-xs text-red-600 hover:underline"
-                    title="Supprimer la ligne"
+                    title="Delete line"
                   >
-                    × Supprimer
+                    × Delete
                   </button>
                 </div>
               </div>
@@ -412,22 +412,22 @@ export function DevisBuilder(props: Props) {
               size="sm"
               onClick={addRow}
             >
-              + Ajouter une ligne
+              + Add a line
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Totaux</CardTitle>
+            <CardTitle>Totals</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 text-sm">
-              <Row label="Sous total" value={formatDt(totals.subtotal)} />
+              <Row label="Subtotal" value={formatDt(totals.subtotal)} />
 
               <div className="grid grid-cols-1 gap-2 rounded-lg bg-cream-dark/40 p-3 sm:grid-cols-[1fr_120px_100px] sm:items-center">
                 <label className="text-xs font-semibold uppercase tracking-wider text-ink/60">
-                  Remise
+                  Discount
                 </label>
                 <Input
                   type="number"
@@ -440,20 +440,20 @@ export function DevisBuilder(props: Props) {
                 <span className="text-right text-xs text-ink/55">
                   {totals.discount > 0
                     ? `−${discountPct.toFixed(1)}%`
-                    : "DT (montant)"}
+                    : "DT (amount)"}
                 </span>
               </div>
 
               {totals.discount > 0 && (
                 <Row
-                  label="Après remise"
+                  label="After discount"
                   value={formatDt(totals.subtotal - totals.discount)}
                 />
               )}
-              <Row label="TVA (19%)" value={formatDt(totals.tva)} />
+              <Row label="VAT (19%)" value={formatDt(totals.tva)} />
               <div className="border-t border-ink/10 pt-2">
                 <Row
-                  label="Total TTC"
+                  label="Total incl. tax"
                   value={formatDt(totals.total)}
                   bold
                 />
@@ -464,7 +464,7 @@ export function DevisBuilder(props: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notes (internes — non imprimées)</CardTitle>
+            <CardTitle>Notes (internal — not printed)</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -482,7 +482,7 @@ export function DevisBuilder(props: Props) {
             {pending
               ? t.common.saving
               : props.mode === "create"
-                ? `Créer ${props.kind === "facture" ? "la facture" : "le devis"}`
+                ? `Create ${props.kind === "facture" ? "invoice" : "quote"}`
                 : t.common.save}
           </Button>
           <Link

@@ -51,10 +51,10 @@ export async function updateClientAction(
 ): Promise<ActionResult> {
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const fields = pickClientFields(formData);
-  if (!fields.name) return { ok: false, error: "Le nom est requis." };
+  if (!fields.name) return { ok: false, error: "Name is required." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("clients").update(fields).eq("id", id);
@@ -70,7 +70,7 @@ export async function deleteClientAction(
 ): Promise<ActionResult> {
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("clients").delete().eq("id", id);

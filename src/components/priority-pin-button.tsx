@@ -28,7 +28,7 @@ export function PriorityPinButton({
         setPinned(!next);
         toast.error(res.error);
       } else if (next) {
-        toast.success("Épinglé dans vos priorités du jour");
+        toast.success("Pinned to your priorities for today");
       }
     });
   }
@@ -40,10 +40,10 @@ export function PriorityPinButton({
       disabled={pending}
       title={
         pinned
-          ? "Désépingler de mes priorités du jour"
-          : "Épingler dans mes priorités du jour (max 3)"
+          ? "Unpin from my priorities for today"
+          : "Pin to my priorities for today (max 3)"
       }
-      aria-label={pinned ? "Désépingler" : "Épingler"}
+      aria-label={pinned ? "Unpin" : "Pin"}
       className={cn(
         "inline-flex h-7 w-7 items-center justify-center rounded-md transition-all hover:scale-110",
         pinned

@@ -95,7 +95,7 @@ function ToastBubble({
         type="button"
         onClick={onDismiss}
         className="shrink-0 text-current/40 hover:text-current"
-        aria-label="Fermer"
+        aria-label="Close"
       >
         ×
       </button>

@@ -25,8 +25,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_FR: Record<string, string> = {
-  draft: "Brouillon", scheduled: "Planifié",
-  published: "Publié", cancelled: "Annulé",
+  draft: "Draft", scheduled: "Scheduled",
+  published: "Published", cancelled: "Cancelled",
 };
 
 function platformIcons(platforms: string[]) {
@@ -46,20 +46,20 @@ export function LinkedSocialPosts({ taskId, posts, canSchedule }: Props) {
     <div className="glass rounded-2xl p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-ink/40">
-          📱 Posts Social Media liés
+          📱 Linked social media posts
         </h3>
         {canSchedule && (
           <Link
             href={`/dashboard/social-media?task_id=${taskId}`}
             className="rounded-lg bg-brand/10 px-3 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/20"
           >
-            + Planifier un post
+            + Schedule a post
           </Link>
         )}
       </div>
 
       {posts.length === 0 ? (
-        <p className="text-xs text-ink/35">Aucun post lié à cette tâche.</p>
+        <p className="text-xs text-ink/35">No posts linked to this task.</p>
       ) : (
         <div className="space-y-1.5">
           {posts.map((p) => (

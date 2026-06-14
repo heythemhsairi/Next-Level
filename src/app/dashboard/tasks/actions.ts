@@ -102,7 +102,7 @@ export async function setTaskAssigneesAction(
   userIds: string[],
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
 
   const supabase = await createClient();
   const { data: before } = await supabase
@@ -127,14 +127,14 @@ export async function setTaskAssigneesAction(
     await notify(
       added[0],
       "task_assigned",
-      `Tâche assignée : ${before.title}`,
+      `Task assigned: ${before.title}`,
       `/dashboard/tasks/${taskId}`,
     );
     for (let i = 1; i < added.length; i++) {
       await notify(
         added[i],
         "task_assigned",
-        `Tâche assignée : ${before.title}`,
+        `Task assigned: ${before.title}`,
         `/dashboard/tasks/${taskId}`,
       );
     }
@@ -173,8 +173,8 @@ export async function createTaskAction(
   const session = await requireWorkerOrAdmin();
   const fields = pickTaskFields(formData);
   if (!fields.project_id)
-    return { ok: false, error: "Le projet est requis." };
-  if (!fields.title) return { ok: false, error: "Le titre est requis." };
+    return { ok: false, error: "Project is required." };
+  if (!fields.title) return { ok: false, error: "Title is required." };
 
   const supabase = await createClient();
   const { assignee_ids, ...taskCols } = fields;
@@ -200,7 +200,7 @@ export async function createTaskAction(
         await notify(
           uid,
           "task_assigned",
-          `Nouvelle tâche : ${fields.title}`,
+          `New task: ${fields.title}`,
           `/dashboard/tasks/${data.id}`,
         );
       }
@@ -218,10 +218,10 @@ export async function updateTaskAction(
 ): Promise<ActionResult> {
   const session = await requireSession();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const fields = pickTaskFields(formData);
-  if (!fields.title) return { ok: false, error: "Le titre est requis." };
+  if (!fields.title) return { ok: false, error: "Title is required." };
 
   const supabase = await createClient();
   const { data: before } = await supabase
@@ -264,7 +264,7 @@ export async function updateTaskAction(
       await notify(
         uid,
         "task_assigned",
-        `Tâche assignée : ${fields.title}`,
+        `Task assigned: ${fields.title}`,
         `/dashboard/tasks/${id}`,
       );
     }
@@ -282,11 +282,11 @@ export async function updateTaskAction(
         before.created_by &&
         before.created_by !== session.id
       ) {
-        const label = fields.status === "review" ? "à valider" : "terminée";
+        const label = fields.status === "review" ? "to review" : "completed";
         await notify(
           before.created_by,
           `task_${fields.status}`,
-          `Tâche ${label} : ${fields.title}`,
+          `Task ${label}: ${fields.title}`,
           `/dashboard/tasks/${id}`,
         );
       }
@@ -365,7 +365,7 @@ export async function changeTaskStatusAction(
 ): Promise<ActionResult> {
   const session = await requireSession();
   if (!STATUSES.includes(status)) {
-    return { ok: false, error: "Statut invalide." };
+    return { ok: false, error: "Invalid status." };
   }
   const supabase = await createClient();
   const { data: before } = await supabase
@@ -399,11 +399,11 @@ export async function changeTaskStatusAction(
       bRow.created_by &&
       bRow.created_by !== session.id
     ) {
-      const label = status === "review" ? "à valider" : "terminée";
+      const label = status === "review" ? "to review" : "completed";
       await notify(
         bRow.created_by,
         `task_${status}`,
-        `Tâche ${label} : ${bRow.title ?? "—"}`,
+        `Task ${label}: ${bRow.title ?? "—"}`,
         `/dashboard/tasks/${taskId}`,
       );
     }
@@ -458,7 +458,7 @@ export async function deleteTaskAction(
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
   const projectId = String(formData.get("project_id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("tasks").delete().eq("id", id);
@@ -478,7 +478,7 @@ export async function createSubtaskAction(
   const parentId = String(formData.get("parent_task_id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   if (!parentId || !title) {
-    return { ok: false, error: "Titre requis." };
+    return { ok: false, error: "Title is required." };
   }
 
   const supabase = await createClient();
@@ -488,7 +488,7 @@ export async function createSubtaskAction(
     .select("project_id, assignee_id")
     .eq("id", parentId)
     .single();
-  if (!parent) return { ok: false, error: "Tâche parente introuvable." };
+  if (!parent) return { ok: false, error: "Parent task not found." };
 
   const { data: parentAssignees } = await supabase
     .from("task_assignees")
@@ -553,7 +553,7 @@ export async function deleteSubtaskAction(
 ): Promise<ActionResult> {
   await requireSession();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")

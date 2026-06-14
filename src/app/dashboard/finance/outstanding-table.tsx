@@ -20,7 +20,7 @@ export function OutstandingTable({ rows }: { rows: Row[] }) {
   if (rows.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        Aucun impayé. Tout est à jour 🎉
+        Nothing outstanding. All caught up 🎉
       </p>
     );
   }
@@ -52,7 +52,7 @@ export function OutstandingTable({ rows }: { rows: Row[] }) {
               >
                 {formatDevisNumber(r.devis_number)}
               </Link>{" "}
-              · échéance {formatDate(r.due_date)}
+              · due {formatDate(r.due_date)}
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
@@ -69,13 +69,13 @@ export function OutstandingTable({ rows }: { rows: Row[] }) {
 
 function OverdueBadge({ days }: { days: number }) {
   if (days < 0) {
-    return <Badge tone="slate">dans {Math.abs(days)}j</Badge>;
+    return <Badge tone="slate">in {Math.abs(days)}d</Badge>;
   }
   if (days === 0) {
-    return <Badge tone="amber">aujourd&apos;hui</Badge>;
+    return <Badge tone="amber">today</Badge>;
   }
   if (days <= 7) {
-    return <Badge tone="amber">+{days}j</Badge>;
+    return <Badge tone="amber">+{days}d</Badge>;
   }
-  return <Badge tone="red">+{days}j de retard</Badge>;
+  return <Badge tone="red">+{days}d overdue</Badge>;
 }

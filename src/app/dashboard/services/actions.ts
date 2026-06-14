@@ -31,7 +31,7 @@ export async function createServiceAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const fields = pickFields(formData);
-  if (!fields.name_fr) return { ok: false, error: "Nom requis." };
+  if (!fields.name_fr) return { ok: false, error: "Name required." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("services").insert(fields);
@@ -46,10 +46,10 @@ export async function updateServiceAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const fields = pickFields(formData);
-  if (!fields.name_fr) return { ok: false, error: "Nom requis." };
+  if (!fields.name_fr) return { ok: false, error: "Name required." };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -68,7 +68,7 @@ export async function deleteServiceAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("services").delete().eq("id", id);

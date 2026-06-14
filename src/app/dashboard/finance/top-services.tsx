@@ -8,7 +8,7 @@ export function TopServicesList({ services }: { services: Service[] }) {
   if (services.length === 0) {
     return (
       <p className="text-sm text-slate-500">
-        Aucun devis envoyé ou accepté pour le moment.
+        No quotes sent or accepted yet.
       </p>
     );
   }

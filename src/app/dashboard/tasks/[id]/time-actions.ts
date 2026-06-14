@@ -11,7 +11,7 @@ export async function startTimerAction(
   taskId: string,
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
 
   const supabase = await createClient();
   // Stop any currently-running timer for this user
@@ -41,7 +41,7 @@ export async function stopTimerAction(
   taskId: string,
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
 
   const supabase = await createClient();
   const { data: running } = await supabase
@@ -52,7 +52,7 @@ export async function stopTimerAction(
     .is("ended_at", null)
     .maybeSingle();
 
-  if (!running) return { ok: false, error: "Aucun timer en cours." };
+  if (!running) return { ok: false, error: "No timer running." };
 
   const now = new Date();
   const startedAt = new Date(running.started_at);

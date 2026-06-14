@@ -89,13 +89,13 @@ const statusTone: Record<string, "slate" | "blue" | "green" | "red"> = {
 };
 
 const statusLabel: Record<string, string> = {
-  draft: "Brouillon",
-  sent: "Envoyé",
-  accepted: "Accepté",
-  rejected: "Refusé",
-  unpaid: "Impayé",
-  partial: "Partiel",
-  paid: "Payé",
+  draft: "Draft",
+  sent: "Sent",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  unpaid: "Unpaid",
+  partial: "Partial",
+  paid: "Paid",
 };
 
 const priorityTone: Record<string, "slate" | "neutral" | "amber" | "red"> = {

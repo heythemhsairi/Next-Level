@@ -23,9 +23,9 @@ export type TaskFile = {
 
 function fmtSize(bytes: number | null): string {
   if (!bytes) return "—";
-  if (bytes < 1024) return `${bytes} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} Mo`;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function iconFor(mime: string | null): string {
@@ -64,7 +64,7 @@ export function FilesCard({
     startTransition(async () => {
       const res = await uploadTaskFileAction(fd);
       if (res.ok) {
-        toast.success(`${file.name} ajouté`);
+        toast.success(`${file.name} added`);
         // Optimistic add (will be replaced by server data on next nav)
         setFiles((prev) => [
           {
@@ -152,7 +152,7 @@ export function FilesCard({
           }`}
         >
           <p className="text-center">
-            Glissez vos fichiers ici, ou
+            Drag your files here, or
           </p>
           <label>
             <input
@@ -167,10 +167,10 @@ export function FilesCard({
               className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
               role="button"
             >
-              {pending ? "Téléversement…" : "Choisir un fichier"}
+              {pending ? "Uploading…" : "Choose a file"}
             </span>
           </label>
-          <p className="text-xs text-ink/40">Max 25 Mo par fichier</p>
+          <p className="text-xs text-ink/40">Max 25 MB per file</p>
         </div>
 
         {files.length > 0 && (
@@ -200,15 +200,15 @@ export function FilesCard({
                     size="sm"
                     onClick={() => onDownload(f)}
                   >
-                    Télécharger
+                    Download
                   </Button>
                   {canDelete && (
                     <button
                       type="button"
                       onClick={() => onDelete(f)}
                       className="text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
-                      title="Supprimer"
-                      aria-label="Supprimer le fichier"
+                      title="Delete"
+                      aria-label="Delete file"
                     >
                       ×
                     </button>

@@ -34,7 +34,7 @@ type FeaturedRecord = {
 
 function formatMonth(monthIso: string): string {
   const [y, m] = monthIso.split("-").map(Number);
-  return new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("fr-FR", {
+  return new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
@@ -69,7 +69,7 @@ export function FeaturedEmployeeClient({
   }
 
   function onClear(month: string) {
-    if (!confirm("Retirer l'employé du mois pour cette période ?")) return;
+    if (!confirm("Remove the employee of the month for this period?")) return;
     const fd = new FormData();
     fd.set("month", month);
     startClear(async () => {
@@ -80,10 +80,10 @@ export function FeaturedEmployeeClient({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Employé du mois"
+        title="Employee of the Month"
         subtitle={
           <Link href="/dashboard/team" className="hover:underline">
-            ← Équipe
+            ← Team
           </Link>
         }
       />
@@ -93,7 +93,7 @@ export function FeaturedEmployeeClient({
           <CardContent className="relative p-6 md:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-dark ring-1 ring-accent/40 dark:bg-accent/30 dark:text-[#ffd9a3] dark:ring-accent/60">
-                ⭐ Employé du mois · {formatMonth(currentRecord.month)}
+                ⭐ Employee of the Month · {formatMonth(currentRecord.month)}
               </span>
               <Button
                 size="sm"
@@ -102,7 +102,7 @@ export function FeaturedEmployeeClient({
                 disabled={clearPending}
                 className="border-accent/40 text-accent-dark dark:border-accent/50 dark:bg-accent/10 dark:text-[#ffd9a3]"
               >
-                {clearPending ? "…" : "Retirer"}
+                {clearPending ? "…" : "Remove"}
               </Button>
             </div>
 
@@ -148,14 +148,14 @@ export function FeaturedEmployeeClient({
         <CardHeader>
           <CardTitle>
             {currentRecord
-              ? "Modifier l'employé du mois"
-              : "Désigner l'employé du mois"}
+              ? "Edit employee of the month"
+              : "Designate employee of the month"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-ink/80">Mois</label>
+              <label className="text-sm font-medium text-ink/80">Month</label>
               <Input
                 name="month"
                 type="month"
@@ -164,13 +164,13 @@ export function FeaturedEmployeeClient({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-ink/80">Membre</label>
+              <label className="text-sm font-medium text-ink/80">Member</label>
               <Select
                 name="user_id"
                 defaultValue={currentRecord?.user_id ?? ""}
                 required
               >
-                <option value="">— Choisir —</option>
+                <option value="">— Choose —</option>
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.full_name ?? `@${m.username}`}
@@ -180,23 +180,23 @@ export function FeaturedEmployeeClient({
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-ink/80">
-                Raison / Note
+                Reason / Note
               </label>
               <Textarea
                 name="reason"
                 rows={3}
                 defaultValue={currentRecord?.reason ?? ""}
-                placeholder="Pourquoi cette personne ce mois-ci ?"
+                placeholder="Why this person this month?"
               />
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             {saved && (
-              <p className="text-sm text-green-600">Enregistré ✓</p>
+              <p className="text-sm text-green-600">Saved ✓</p>
             )}
 
             <Button type="submit" disabled={pending}>
-              {pending ? "Enregistrement…" : "Enregistrer"}
+              {pending ? "Saving…" : "Save"}
             </Button>
           </form>
         </CardContent>
@@ -205,7 +205,7 @@ export function FeaturedEmployeeClient({
       {featured.length > 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Historique</CardTitle>
+            <CardTitle>History</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="divide-y divide-ink/5">
@@ -236,7 +236,7 @@ export function FeaturedEmployeeClient({
                       onClick={() => onClear(f.month)}
                       disabled={clearPending}
                     >
-                      Retirer
+                      Remove
                     </Button>
                   </li>
                 ))}

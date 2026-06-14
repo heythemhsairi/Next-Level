@@ -18,8 +18,8 @@ export async function createTagAction(
   const session = await requireWorkerOrAdmin();
   const name = normalize(String(formData.get("name") ?? ""));
   const color = String(formData.get("color") ?? "#7C3AED");
-  if (!name) return { ok: false, error: "Le nom du tag est requis." };
-  if (!COLOR_RE.test(color)) return { ok: false, error: "Couleur invalide." };
+  if (!name) return { ok: false, error: "Tag name is required." };
+  if (!COLOR_RE.test(color)) return { ok: false, error: "Invalid color." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("task_tag_catalog").insert({
@@ -40,8 +40,8 @@ export async function updateTagAction(
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
   const color = String(formData.get("color") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
-  if (!COLOR_RE.test(color)) return { ok: false, error: "Couleur invalide." };
+  if (!id) return { ok: false, error: "Missing ID." };
+  if (!COLOR_RE.test(color)) return { ok: false, error: "Invalid color." };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -60,7 +60,7 @@ export async function deleteTagAction(
 ): Promise<ActionResult> {
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase

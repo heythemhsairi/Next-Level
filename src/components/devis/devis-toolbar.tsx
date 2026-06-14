@@ -184,7 +184,7 @@ function FilterMenu({
         )}
       >
         <span className="text-ink/50">{label}:</span>
-        <span className="font-semibold">{selected?.label ?? "Tous"}</span>
+        <span className="font-semibold">{selected?.label ?? "All"}</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="m6 9 6 6 6-6" />
         </svg>

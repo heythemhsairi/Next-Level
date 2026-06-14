@@ -34,7 +34,7 @@ export function DevisStatusActions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cycle de vie</CardTitle>
+        <CardTitle>Lifecycle</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2">
@@ -44,7 +44,7 @@ export function DevisStatusActions({
             disabled={pending}
             onClick={() => changeTo("draft")}
           >
-            Brouillon
+            Draft
           </Button>
           <Button
             variant={currentStatus === "sent" ? "primary" : "outline"}
@@ -52,7 +52,7 @@ export function DevisStatusActions({
             disabled={pending}
             onClick={() => changeTo("sent")}
           >
-            Envoyé
+            Sent
           </Button>
           <Button
             variant={currentStatus === "accepted" ? "primary" : "outline"}
@@ -60,7 +60,7 @@ export function DevisStatusActions({
             disabled={pending}
             onClick={() => changeTo("accepted")}
           >
-            Accepté
+            Accepted
           </Button>
           <Button
             variant={currentStatus === "rejected" ? "primary" : "outline"}
@@ -68,7 +68,7 @@ export function DevisStatusActions({
             disabled={pending}
             onClick={() => changeTo("rejected")}
           >
-            Refusé
+            Rejected
           </Button>
         </div>
       </CardContent>
@@ -110,7 +110,7 @@ export function PaymentSection({
   }
 
   function onMarkFullyPaid() {
-    if (!confirm("Marquer comme entièrement payé ? Un paiement du solde sera enregistré.")) return;
+    if (!confirm("Mark as fully paid? A payment for the balance will be recorded.")) return;
     const fd = new FormData();
     fd.set("devis_id", devisId);
     startMarkPaid(async () => {
@@ -121,13 +121,13 @@ export function PaymentSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Paiement</CardTitle>
+        <CardTitle>Payment</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-ink/60">
-              Encaissé{" "}
+              Collected{" "}
               <span className="font-semibold text-ink">{formatDt(paidDt)}</span>{" "}
               / {formatDt(totalDt)}
             </span>
@@ -141,10 +141,10 @@ export function PaymentSection({
               }
             >
               {isFullyPaid
-                ? "Payé"
+                ? "Paid"
                 : remaining < totalDt
-                  ? "Partiel"
-                  : "Impayé"}
+                  ? "Partial"
+                  : "Unpaid"}
             </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-ink/5">
@@ -155,7 +155,7 @@ export function PaymentSection({
           </div>
           {!isFullyPaid && (
             <p className="text-xs text-ink/50">
-              Reste à encaisser :{" "}
+              Remaining to collect:{" "}
               <span className="font-semibold text-ink">
                 {formatDt(remaining)}
               </span>
@@ -174,8 +174,8 @@ export function PaymentSection({
               className="w-full"
             >
               {markPending
-                ? "Enregistrement…"
-                : `Marquer entièrement payé (${formatDt(remaining)})`}
+                ? "Saving…"
+                : `Mark fully paid (${formatDt(remaining)})`}
             </Button>
           </div>
         )}
@@ -183,10 +183,10 @@ export function PaymentSection({
         <form className="space-y-3" onSubmit={onSubmit}>
           <input type="hidden" name="devis_id" value={devisId} />
           <p className="text-xs font-medium uppercase tracking-wide text-ink/50">
-            ou enregistrer un paiement partiel
+            or record a partial payment
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Montant (DT)">
+            <Field label="Amount (DT)">
               <Input
                 name="amount_dt"
                 type="number"
@@ -204,8 +204,8 @@ export function PaymentSection({
                 required
               />
             </Field>
-            <Field label="Méthode">
-              <Input name="method" placeholder="Virement, espèces…" />
+            <Field label="Method">
+              <Input name="method" placeholder="Transfer, cash…" />
             </Field>
             <Field label="Note">
               <Input name="notes" />
@@ -213,10 +213,10 @@ export function PaymentSection({
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {done && (
-            <p className="text-sm text-green-600">Paiement enregistré.</p>
+            <p className="text-sm text-green-600">Payment recorded.</p>
           )}
           <Button type="submit" size="sm" variant="outline" disabled={pending}>
-            {pending ? "Enregistrement…" : "Ajouter le paiement"}
+            {pending ? "Saving…" : "Add payment"}
           </Button>
         </form>
       </CardContent>
@@ -229,7 +229,7 @@ export function ConvertToFactureButton({ devisId }: { devisId: string }) {
   function onClick() {
     if (
       !confirm(
-        "Générer une facture à partir de ce devis ? Vous serez redirigé vers la nouvelle facture.",
+        "Generate an invoice from this quote? You will be redirected to the new invoice.",
       )
     )
       return;
@@ -249,7 +249,7 @@ export function ConvertToFactureButton({ devisId }: { devisId: string }) {
       onClick={onClick}
       disabled={pending}
     >
-      {pending ? "Conversion…" : "→ Convertir en facture"}
+      {pending ? "Converting…" : "→ Convert to invoice"}
     </Button>
   );
 }
@@ -266,7 +266,7 @@ export function DeleteDevisButton({
   function onDelete() {
     if (
       !confirm(
-        `Supprimer ${kind === "facture" ? "cette facture" : "ce devis"} ? Action irréversible.`,
+        `Delete ${kind === "facture" ? "this invoice" : "this quote"}? This action cannot be undone.`,
       )
     )
       return;
@@ -286,7 +286,7 @@ export function DeleteDevisButton({
       onClick={onDelete}
       disabled={pending}
     >
-      {pending ? "…" : "Supprimer"}
+      {pending ? "…" : "Delete"}
     </Button>
   );
 }

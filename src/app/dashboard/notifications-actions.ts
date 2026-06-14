@@ -10,7 +10,7 @@ export async function markNotificationReadAction(
   id: string,
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("notifications")

@@ -77,7 +77,7 @@ function AvatarCard({ member }: { member: Member }) {
   }
 
   function onRemove() {
-    if (!confirm("Supprimer la photo de profil ?")) return;
+    if (!confirm("Remove profile photo?")) return;
     const fd = new FormData();
     fd.set("id", member.id);
     startRemove(async () => {
@@ -111,7 +111,7 @@ function AvatarCard({ member }: { member: Member }) {
                 className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
                 role="button"
               >
-                {pending ? "Téléversement…" : "Téléverser une image"}
+                {pending ? "Uploading…" : "Upload an image"}
               </span>
             </label>
             {member.avatar_url && (
@@ -122,10 +122,10 @@ function AvatarCard({ member }: { member: Member }) {
                 onClick={onRemove}
                 disabled={removePending}
               >
-                {removePending ? "…" : "Retirer la photo"}
+                {removePending ? "…" : "Remove photo"}
               </Button>
             )}
-            <p className="text-xs text-ink/50">JPG, PNG ou WebP — 4 Mo max.</p>
+            <p className="text-xs text-ink/50">JPG, PNG or WebP — 4 MB max.</p>
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
         </div>
@@ -173,7 +173,7 @@ function ProfileForm({ member, isSelf }: { member: Member; isSelf: boolean }) {
               required
             />
           </Field>
-          <Field label="Titre / poste (optionnel)">
+          <Field label="Title / position (optional)">
             <Input
               name="job_title"
               defaultValue={member.job_title ?? ""}
@@ -246,7 +246,7 @@ function PasswordResetCard({ memberId }: { memberId: string }) {
               type="text"
               minLength={8}
               required
-              placeholder="MinimumHuit!"
+              placeholder="MinimumEight!"
             />
           </Field>
           {error && <p className="text-sm text-red-600">{error}</p>}

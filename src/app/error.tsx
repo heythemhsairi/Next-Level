@@ -38,10 +38,10 @@ export default function GlobalError({
         }}
       >
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>
-          Une erreur est survenue
+          Something went wrong
         </h1>
         <p style={{ marginTop: 8, fontSize: 13, color: "rgba(30,30,36,0.65)" }}>
-          La page n&apos;a pas pu se charger. Détails :
+          The page could not be loaded. Details:
         </p>
         <pre
           style={{
@@ -56,7 +56,7 @@ export default function GlobalError({
             overflowX: "auto",
           }}
         >
-          {error.message || "Erreur inconnue"}
+          {error.message || "Unknown error"}
           {error.digest ? `\n\nDigest: ${error.digest}` : ""}
           {"\n\n"}
           {error.stack ?? ""}
@@ -75,7 +75,7 @@ export default function GlobalError({
               cursor: "pointer",
             }}
           >
-            Réessayer
+            Retry
           </button>
           <a
             href="/"
@@ -91,7 +91,7 @@ export default function GlobalError({
               fontWeight: 500,
             }}
           >
-            Accueil
+            Home
           </a>
         </div>
       </div>

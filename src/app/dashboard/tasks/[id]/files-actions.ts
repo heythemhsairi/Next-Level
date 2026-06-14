@@ -16,12 +16,12 @@ export async function uploadTaskFileAction(
   const session = await requireSession();
   const taskId = String(formData.get("task_id") ?? "");
   const file = formData.get("file");
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Fichier manquant." };
+    return { ok: false, error: "File missing." };
   }
   if (file.size > MAX_BYTES) {
-    return { ok: false, error: "Fichier trop volumineux (max 25 Mo)." };
+    return { ok: false, error: "File too large (max 25 MB)." };
   }
 
   const admin = createAdminClient();
@@ -69,7 +69,7 @@ export async function uploadTaskFileAction(
           (uid): uid is string => Boolean(uid) && uid !== session.id,
         ),
         "file_uploaded",
-        `Fichier ajouté à « ${tk.title} » : ${file.name}`,
+        `File added to "${tk.title}": ${file.name}`,
         `/dashboard/tasks/${taskId}`,
       );
     }
@@ -87,7 +87,7 @@ export async function deleteTaskFileAction(
   const session = await requireSession();
   const id = String(formData.get("id") ?? "");
   const taskId = String(formData.get("task_id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const admin = createAdminClient();
   const { data: row } = await admin
@@ -95,7 +95,7 @@ export async function deleteTaskFileAction(
     .select("storage_path, name")
     .eq("id", id)
     .single();
-  if (!row) return { ok: false, error: "Fichier introuvable." };
+  if (!row) return { ok: false, error: "File not found." };
 
   await admin.storage.from("task-files").remove([row.storage_path]);
   const { error } = await admin.from("task_files").delete().eq("id", id);
@@ -112,7 +112,7 @@ export async function getTaskFileDownloadUrlAction(
   fileId: string,
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   await requireSession();
-  if (!fileId) return { ok: false, error: "Fichier manquant." };
+  if (!fileId) return { ok: false, error: "File missing." };
 
   const admin = createAdminClient();
   const { data: row } = await admin
@@ -120,7 +120,7 @@ export async function getTaskFileDownloadUrlAction(
     .select("storage_path, name")
     .eq("id", fileId)
     .single();
-  if (!row) return { ok: false, error: "Fichier introuvable." };
+  if (!row) return { ok: false, error: "File not found." };
 
   const { data, error } = await admin.storage
     .from("task-files")
@@ -128,7 +128,7 @@ export async function getTaskFileDownloadUrlAction(
       download: row.name,
     });
   if (error || !data) {
-    return { ok: false, error: error?.message ?? "Échec du lien signé." };
+    return { ok: false, error: error?.message ?? "Failed to create signed link." };
   }
   return { ok: true, url: data.signedUrl };
 }

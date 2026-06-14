@@ -29,16 +29,16 @@ const paymentTone = {
 } as const;
 
 const statusLabel: Record<string, string> = {
-  draft: "Brouillon",
-  sent: "Envoyé",
-  accepted: "Accepté",
-  rejected: "Refusé",
+  draft: "Draft",
+  sent: "Sent",
+  accepted: "Accepted",
+  rejected: "Rejected",
 };
 
 const paymentLabel: Record<string, string> = {
-  unpaid: "Impayé",
-  partial: "Partiel",
-  paid: "Payé",
+  unpaid: "Unpaid",
+  partial: "Partial",
+  paid: "Paid",
 };
 
 export default async function DevisDetailPage({
@@ -100,7 +100,7 @@ export default async function DevisDetailPage({
   );
 
   const kind = (devis.kind as "devis" | "facture") ?? "devis";
-  const docLabel = kind === "facture" ? "Facture" : "Devis";
+  const docLabel = kind === "facture" ? "Invoice" : "Quote";
   const baseListUrl = kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
 
   return (
@@ -109,7 +109,7 @@ export default async function DevisDetailPage({
         title={`${docLabel} ${formatDevisNumber(devis.devis_number, kind)}`}
         subtitle={
           <Link href={baseListUrl} className="hover:underline">
-            ← {kind === "facture" ? "Factures" : "Devis"}
+            ← {kind === "facture" ? "Invoices" : "Quotes"}
           </Link>
         }
         action={
@@ -123,12 +123,12 @@ export default async function DevisDetailPage({
               rel="noreferrer"
             >
               <Button variant="ink" size="sm">
-                Imprimer / PDF
+                Print / PDF
               </Button>
             </Link>
             <Link href={`${baseListUrl}/${devis.id}/edit`}>
               <Button variant="outline" size="sm">
-                Modifier
+                Edit
               </Button>
             </Link>
             <DeleteDevisButton devisId={devis.id} kind={kind} />
@@ -143,7 +143,7 @@ export default async function DevisDetailPage({
               href={`/dashboard/${parent.kind === "facture" ? "factures" : "devis"}/${parent.id}`}
               className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 font-semibold text-brand-dark hover:bg-brand/15"
             >
-              ← Issue de {formatDevisNumber(parent.devis_number, parent.kind as "devis" | "facture")}
+              ← From {formatDevisNumber(parent.devis_number, parent.kind as "devis" | "facture")}
             </Link>
           )}
           {derivedFacture && (
@@ -151,7 +151,7 @@ export default async function DevisDetailPage({
               href={`/dashboard/factures/${derivedFacture.id}`}
               className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 font-semibold text-accent-dark hover:bg-accent/25"
             >
-              → Facturé sous {formatDevisNumber(derivedFacture.devis_number, "facture")}
+              → Invoiced as {formatDevisNumber(derivedFacture.devis_number, "facture")}
             </Link>
           )}
         </div>
@@ -171,7 +171,7 @@ export default async function DevisDetailPage({
         <Card>
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-wide text-ink/50">
-              Date / Échéance
+              Date / Due date
             </p>
             <p className="mt-1 text-sm text-ink">
               {formatDate(devis.date)} → {formatDate(devis.due_date)}
@@ -181,7 +181,7 @@ export default async function DevisDetailPage({
         <Card>
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-wide text-ink/50">
-              Statut
+              Status
             </p>
             <div className="mt-1 flex items-center gap-2">
               <Badge tone={statusTone[devis.status as keyof typeof statusTone]}>
@@ -202,7 +202,7 @@ export default async function DevisDetailPage({
         <Card>
           <CardContent className="p-4">
             <p className="text-xs uppercase tracking-wide text-ink/50">
-              Total TTC
+              Total incl. tax
             </p>
             <p className="mt-1 text-lg font-semibold text-ink">
               {formatDt(devis.total_dt)}
@@ -218,16 +218,16 @@ export default async function DevisDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Lignes</CardTitle>
+          <CardTitle>Lines</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <THead>
               <TR>
                 <TH>Description</TH>
-                <TH className="text-right">P.U.</TH>
-                <TH className="text-right">Qté</TH>
-                <TH className="text-right">Total ligne</TH>
+                <TH className="text-right">Unit price</TH>
+                <TH className="text-right">Qty</TH>
+                <TH className="text-right">Line total</TH>
               </TR>
             </THead>
             <TBody>
@@ -249,22 +249,22 @@ export default async function DevisDetailPage({
           <div className="mt-6 flex justify-end">
             <div className="w-full max-w-xs space-y-1.5 text-sm">
               <Row
-                label="Sous total"
+                label="Subtotal"
                 value={formatDt(devis.subtotal_dt)}
               />
               {Number(devis.discount_dt ?? 0) > 0 && (
                 <Row
-                  label="Remise"
+                  label="Discount"
                   value={`− ${formatDt(devis.discount_dt)}`}
                 />
               )}
               <Row
-                label={`TVA (${Number(devis.tva_rate).toFixed(0)}%)`}
+                label={`VAT (${Number(devis.tva_rate).toFixed(0)}%)`}
                 value={formatDt(devis.tva_dt)}
               />
               <div className="border-t border-ink/10 pt-2">
                 <Row
-                  label="Total TTC"
+                  label="Total incl. tax"
                   value={formatDt(devis.total_dt)}
                   bold
                 />
@@ -283,7 +283,7 @@ export default async function DevisDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Paiements</CardTitle>
+            <CardTitle>Payments</CardTitle>
           </CardHeader>
           <CardContent>
             {payments && payments.length > 0 ? (
@@ -306,7 +306,7 @@ export default async function DevisDetailPage({
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-ink/50">Aucun paiement enregistré.</p>
+              <p className="text-sm text-ink/50">No payments recorded.</p>
             )}
           </CardContent>
         </Card>

@@ -81,12 +81,12 @@ const STATUS_COLORS: Record<SocialPostStatus, string> = {
 };
 
 const STATUS_LABELS: Record<SocialPostStatus, string> = {
-  draft: "Brouillon", scheduled: "Planifié",
-  published: "Publié", cancelled: "Annulé",
+  draft: "Draft", scheduled: "Scheduled",
+  published: "Published", cancelled: "Cancelled",
 };
 
-const WEEKDAYS = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
-const MONTHS   = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const MONTHS   = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -106,11 +106,11 @@ function toDateKey(d: Date) {
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function fmtDateShort(iso: string) {
-  return new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+  return new Date(iso).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" });
 }
 
 // ─── PlatformPicker ───────────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ function CharCounter({ text, platforms }: { text: string; platforms: string[] })
     <span className={cn("text-[10px] tabular-nums", color)}>
       {len} / {minLimit}
       {platforms.length > 1 && (
-        <span className="ml-1 text-ink/30">(limite la plus basse)</span>
+        <span className="ml-1 text-ink/30">(lowest limit)</span>
       )}
     </span>
   );
@@ -252,7 +252,7 @@ function PostForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (selectedPlatforms.length === 0) {
-      setError("Sélectionnez au moins une plateforme.");
+      setError("Select at least one platform.");
       return;
     }
     const fd = new FormData(e.currentTarget);
@@ -263,7 +263,7 @@ function PostForm({
       const result = post
         ? await updateSocialPostAction(fd)
         : await createSocialPostAction(fd);
-      if (!result.ok) setError(result.error ?? "Erreur");
+      if (!result.ok) setError(result.error ?? "Error");
       else { onSaved(); onClose(); }
     });
   }
@@ -284,7 +284,7 @@ function PostForm({
               tab === t ? "bg-brand text-white shadow-sm" : "text-ink/50 hover:text-ink",
             )}
           >
-            {t === "main" ? "Publication" : "Options avancées"}
+            {t === "main" ? "Post" : "Advanced options"}
           </button>
         ))}
       </div>
@@ -294,16 +294,16 @@ function PostForm({
           {/* Title */}
           <div>
             <label className="mb-1 block text-xs font-medium text-ink/60">
-              Titre <span className="text-red-400">*</span>
+              Title <span className="text-red-400">*</span>
             </label>
-            <Input name="title" required defaultValue={post?.title} placeholder="Ex : Lancement produit été" />
+            <Input name="title" required defaultValue={post?.title} placeholder="e.g. Summer product launch" />
           </div>
 
           {/* Platform picker */}
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label className="text-xs font-medium text-ink/60">
-                Plateformes <span className="text-red-400">*</span>
+                Platforms <span className="text-red-400">*</span>
               </label>
               {selectedPlatforms.length > 0 && (
                 <button
@@ -311,14 +311,14 @@ function PostForm({
                   onClick={() => setSelectedPlatforms([])}
                   className="text-[10px] text-ink/35 hover:text-ink/60"
                 >
-                  Tout désélectionner
+                  Deselect all
                 </button>
               )}
             </div>
             <PlatformPicker selected={selectedPlatforms} onChange={setSelectedPlatforms} />
             {selectedPlatforms.length > 0 && (
               <p className="mt-1.5 text-[10px] text-ink/40">
-                {selectedPlatforms.length} plateforme{selectedPlatforms.length > 1 ? "s" : ""} sélectionnée{selectedPlatforms.length > 1 ? "s" : ""}
+                {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? "s" : ""} selected
               </p>
             )}
           </div>
@@ -326,7 +326,7 @@ function PostForm({
           {/* Content */}
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label className="text-xs font-medium text-ink/60">Contenu</label>
+              <label className="text-xs font-medium text-ink/60">Content</label>
               <CharCounter text={content} platforms={selectedPlatforms} />
             </div>
             <Textarea
@@ -334,7 +334,7 @@ function PostForm({
               rows={5}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Texte de la publication, appel à l'action…"
+              placeholder="Post text, call to action…"
             />
           </div>
 
@@ -351,7 +351,7 @@ function PostForm({
           {/* Schedule */}
           <div>
             <label className="mb-1 block text-xs font-medium text-ink/60">
-              Date & heure de publication
+              Publish date & time
             </label>
             <Input
               name="scheduled_at"
@@ -370,30 +370,30 @@ function PostForm({
         <div className="space-y-4">
           {/* Media URL */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">URL du média</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Media URL</label>
             <Input name="media_url" type="url" defaultValue={post?.media_url ?? ""} placeholder="https://drive.google.com/…" />
-            <p className="mt-1 text-[10px] text-ink/35">Lien vers l'image ou la vidéo à publier.</p>
+            <p className="mt-1 text-[10px] text-ink/35">Link to the image or video to publish.</p>
           </div>
 
           {/* First comment */}
           <div>
             <label className="mb-1 block text-xs font-medium text-ink/60">
-              Premier commentaire
+              First comment
               <span className="ml-1 text-[10px] font-normal text-ink/35">(Instagram, Facebook)</span>
             </label>
             <Textarea
               name="first_comment"
               rows={2}
               defaultValue={post?.first_comment}
-              placeholder="Hashtags ou CTA en premier commentaire…"
+              placeholder="Hashtags or CTA in the first comment…"
             />
           </div>
 
           {/* Project */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Projet</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Project</label>
             <Select name="project_id" value={selectedProject} onChange={(e) => setSelectedProject(e.target.value)}>
-              <option value="">— Aucun projet —</option>
+              <option value="">— No project —</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
@@ -402,9 +402,9 @@ function PostForm({
 
           {/* Task */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Tâche liée</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Linked task</label>
             <Select name="task_id" defaultValue={post?.task_id ?? preselectedTaskId ?? ""}>
-              <option value="">— Aucune tâche —</option>
+              <option value="">— No task —</option>
               {filteredTasks.map((tk) => (
                 <option key={tk.id} value={tk.id}>{tk.title}</option>
               ))}
@@ -413,12 +413,12 @@ function PostForm({
 
           {/* Internal notes */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-ink/60">Notes internes</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Internal notes</label>
             <Textarea
               name="notes"
               rows={3}
               defaultValue={post?.notes}
-              placeholder="Instructions pour l'équipe, rappels, contexte…"
+              placeholder="Instructions for the team, reminders, context…"
             />
           </div>
         </div>
@@ -430,10 +430,10 @@ function PostForm({
 
       <div className="mt-5 flex justify-end gap-2">
         <Button variant="outline" size="sm" type="button" onClick={onClose} disabled={isPending}>
-          Annuler
+          Cancel
         </Button>
         <Button variant="primary" size="sm" disabled={isPending}>
-          {isPending ? "Enregistrement…" : "Enregistrer"}
+          {isPending ? "Saving…" : "Save"}
         </Button>
       </div>
     </form>
@@ -457,7 +457,7 @@ function PostDetail({
   const [copied, setCopied] = useState(false);
 
   function handleStatusChange(status: SocialPostStatus) {
-    if (status === "published" && !confirm("Marquer ce post comme publié ?")) return;
+    if (status === "published" && !confirm("Mark this post as published?")) return;
     startTransition(async () => {
       await changeSocialPostStatusAction(post.id, status);
       onSaved(); onClose();
@@ -465,7 +465,7 @@ function PostDetail({
   }
 
   function handleDelete() {
-    if (!confirm("Supprimer ce post ?")) return;
+    if (!confirm("Delete this post?")) return;
     const fd = new FormData();
     fd.set("id", post.id);
     startTransition(async () => {
@@ -505,7 +505,7 @@ function PostDetail({
           <span>📅</span>
           <span className="font-medium">{fmtDate(post.scheduled_at)}</span>
           {post.published_at && (
-            <span className="ml-auto text-green-600">✓ publié {fmtDateShort(post.published_at)}</span>
+            <span className="ml-auto text-green-600">✓ published {fmtDateShort(post.published_at)}</span>
           )}
         </div>
       )}
@@ -519,7 +519,7 @@ function PostDetail({
             onClick={copyContent}
             className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-[10px] text-ink/30 opacity-0 transition-all group-hover:opacity-100 hover:bg-white/10 hover:text-ink/70"
           >
-            {copied ? "✓ Copié" : "Copier"}
+            {copied ? "✓ Copied" : "Copy"}
           </button>
         </div>
       )}
@@ -532,7 +532,7 @@ function PostDetail({
       {/* First comment */}
       {post.first_comment && (
         <div className="rounded-xl border border-ink/8 px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium text-ink/35 uppercase tracking-wider">Premier commentaire</p>
+          <p className="mb-0.5 text-[10px] font-medium text-ink/35 uppercase tracking-wider">First comment</p>
           <p className="text-xs text-ink/70 whitespace-pre-wrap">{post.first_comment}</p>
         </div>
       )}
@@ -560,7 +560,7 @@ function PostDetail({
       {/* Notes */}
       {post.notes && (
         <div className="rounded-xl border border-dashed border-ink/15 px-3 py-2">
-          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-ink/35">Notes internes</p>
+          <p className="mb-0.5 text-[10px] font-medium uppercase tracking-wider text-ink/35">Internal notes</p>
           <p className="text-xs text-ink/60 whitespace-pre-wrap">{post.notes}</p>
         </div>
       )}
@@ -575,34 +575,34 @@ function PostDetail({
         {post.status !== "published" && post.status !== "cancelled" && (
           <>
             <Button variant="primary" size="sm" onClick={() => handleStatusChange("published")} disabled={isPending}>
-              ✓ Marquer publié
+              ✓ Mark published
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleStatusChange("scheduled")} disabled={isPending || post.status === "scheduled"}>
-              📅 Planifié
+              📅 Scheduled
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleStatusChange("cancelled")} disabled={isPending}>
-              Annuler
+              Cancel
             </Button>
           </>
         )}
         {post.status === "cancelled" && (
           <Button variant="outline" size="sm" onClick={() => handleStatusChange("draft")} disabled={isPending}>
-            ↩ Remettre en brouillon
+            ↩ Move back to draft
           </Button>
         )}
         <div className="ml-auto flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleDuplicate} disabled={isPending} title="Dupliquer">
-            ⧉ Dupliquer
+          <Button variant="ghost" size="sm" onClick={handleDuplicate} disabled={isPending} title="Duplicate">
+            ⧉ Duplicate
           </Button>
           <Button variant="ghost" size="sm" onClick={onEdit} disabled={isPending}>
-            ✏ Modifier
+            ✏ Edit
           </Button>
           <button
             onClick={handleDelete}
             disabled={isPending}
             className="rounded-md px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
           >
-            Supprimer
+            Delete
           </button>
         </div>
       </div>
@@ -713,10 +713,10 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
     <div className="space-y-5 pb-10">
       <PageHeader
         title="Social Media"
-        description="Planifiez et gérez les publications sur les réseaux sociaux."
+        description="Plan and manage your social media posts."
         action={
           <Button variant="primary" size="sm" onClick={() => openCreate()}>
-            + Nouveau post
+            + New post
           </Button>
         }
       />
@@ -725,9 +725,9 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: "Total",     value: total,     color: "text-ink" },
-          { label: "Planifiés", value: scheduled, color: "text-brand" },
-          { label: "Publiés",   value: published, color: "text-green-600" },
-          { label: "Brouillons",value: drafts,    color: "text-ink/50" },
+          { label: "Scheduled", value: scheduled, color: "text-brand" },
+          { label: "Published", value: published, color: "text-green-600" },
+          { label: "Drafts",    value: drafts,    color: "text-ink/50" },
         ].map((s) => (
           <div key={s.label} className="glass rounded-xl px-4 py-3 text-center">
             <p className={cn("text-2xl font-bold tabular-nums", s.color)}>{s.value}</p>
@@ -749,7 +749,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                 view === v ? "bg-brand text-white shadow-sm" : "text-ink/55 hover:text-ink",
               )}
             >
-              {v === "calendar" ? "Calendrier" : "Liste"}
+              {v === "calendar" ? "Calendar" : "List"}
             </button>
           ))}
         </div>
@@ -758,13 +758,13 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher…"
+          placeholder="Search…"
           className="h-8 rounded-lg border border-ink/10 bg-white/6 px-3 text-xs text-ink placeholder-ink/35 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
 
         {/* Platform filter */}
         <Select value={filterPlatform} onChange={(e) => setFP(e.target.value)} className="h-8 w-44 text-xs">
-          <option value="">Toutes les plateformes</option>
+          <option value="">All platforms</option>
           {ALL_PLATFORMS.map((p) => (
             <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
           ))}
@@ -772,7 +772,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
 
         {/* Status filter */}
         <Select value={filterStatus} onChange={(e) => setFS(e.target.value)} className="h-8 w-36 text-xs">
-          <option value="">Tous les statuts</option>
+          <option value="">All statuses</option>
           {(["draft","scheduled","published","cancelled"] as SocialPostStatus[]).map((s) => (
             <option key={s} value={s}>{STATUS_LABELS[s]}</option>
           ))}
@@ -783,7 +783,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
             onClick={() => { setFP(""); setFS(""); setSearch(""); }}
             className="text-xs text-ink/40 hover:text-ink"
           >
-            ✕ Effacer
+            ✕ Clear
           </button>
         )}
       </div>
@@ -836,7 +836,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                       <PostChip key={p.id} post={p} onClick={() => openView(p)} />
                     ))}
                     {dayPosts.length > 3 && (
-                      <p className="px-1 text-[9px] text-ink/40">+{dayPosts.length - 3} de plus</p>
+                      <p className="px-1 text-[9px] text-ink/40">+{dayPosts.length - 3} more</p>
                     )}
                   </div>
                 </div>
@@ -869,8 +869,8 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
         <div className="space-y-2">
           {filtered.length === 0 && (
             <div className="glass rounded-2xl px-6 py-10 text-center">
-              <p className="text-sm text-ink/50">Aucun post trouvé.</p>
-              <p className="mt-1 text-xs text-ink/35">Essayez d'élargir les filtres ou créez un nouveau post.</p>
+              <p className="text-sm text-ink/50">No posts found.</p>
+              <p className="mt-1 text-xs text-ink/35">Try broadening your filters or create a new post.</p>
             </div>
           )}
           {filtered.map((p) => (
@@ -904,14 +904,14 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                   <button
                     onClick={() => openEdit(p)}
                     className="rounded-lg px-2 py-1 text-xs text-ink/50 hover:bg-white/10 hover:text-ink"
-                    title="Modifier"
+                    title="Edit"
                   >
                     ✏
                   </button>
                   <button
                     onClick={() => openView(p)}
                     className="rounded-lg px-2 py-1 text-xs text-ink/50 hover:bg-white/10 hover:text-ink"
-                    title="Voir"
+                    title="View"
                   >
                     →
                   </button>
@@ -926,7 +926,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       {unscheduledDrafts.length > 0 && (
         <div className="glass rounded-2xl p-5">
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink/40">
-            Brouillons non planifiés ({unscheduledDrafts.length})
+            Unscheduled drafts ({unscheduledDrafts.length})
           </h4>
           <div className="space-y-1.5">
             {unscheduledDrafts.map((p) => (
@@ -947,7 +947,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
                   onClick={() => openEdit(p)}
                   className="shrink-0 rounded-md px-2 py-0.5 text-xs text-brand hover:bg-brand/10"
                 >
-                  Planifier
+                  Schedule
                 </button>
               </div>
             ))}
@@ -957,7 +957,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
 
       {/* ── Modals ── */}
       {modal === "create" && (
-        <Modal title="Nouveau post" onClose={closeModal} wide>
+        <Modal title="New post" onClose={closeModal} wide>
           <PostForm
             projects={projects}
             tasks={tasks}
@@ -970,7 +970,7 @@ export function SocialMediaView({ posts, projects, tasks, preselectedTaskId }: P
       )}
 
       {modal === "edit" && selectedPost && (
-        <Modal title="Modifier le post" onClose={closeModal} wide>
+        <Modal title="Edit post" onClose={closeModal} wide>
           <PostForm
             post={selectedPost}
             projects={projects}

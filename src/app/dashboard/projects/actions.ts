@@ -62,8 +62,8 @@ export async function createProjectAction(
   await requireWorkerOrAdmin();
   const fields = pickProjectFields(formData);
   if (!fields.client_id)
-    return { ok: false, error: "Le client est requis." };
-  if (!fields.name) return { ok: false, error: "Le nom est requis." };
+    return { ok: false, error: "Client is required." };
+  if (!fields.name) return { ok: false, error: "Name is required." };
 
   const supabase = await createClient();
   const { assignee_ids, ...projectCols } = fields;
@@ -86,10 +86,10 @@ export async function updateProjectAction(
 ): Promise<ActionResult> {
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const fields = pickProjectFields(formData);
-  if (!fields.name) return { ok: false, error: "Le nom est requis." };
+  if (!fields.name) return { ok: false, error: "Name is required." };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -118,7 +118,7 @@ export async function deleteProjectAction(
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
   const clientId = String(formData.get("client_id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("projects").delete().eq("id", id);

@@ -35,13 +35,13 @@ export async function createTeamMemberAction(
   const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;
 
   if (!username || !fullName || !password) {
-    return { ok: false, error: "Tous les champs obligatoires." };
+    return { ok: false, error: "All fields are required." };
   }
   if (password.length < 8) {
-    return { ok: false, error: "Mot de passe minimum 8 caractères." };
+    return { ok: false, error: "Password must be at least 8 characters." };
   }
   if (!VALID_ROLES.includes(role)) {
-    return { ok: false, error: "Rôle invalide." };
+    return { ok: false, error: "Invalid role." };
   }
 
   const admin = createAdminClient();
@@ -56,7 +56,7 @@ export async function createTeamMemberAction(
   if (createErr || !created.user) {
     return {
       ok: false,
-      error: createErr?.message ?? "Échec de création de l'utilisateur.",
+      error: createErr?.message ?? "Failed to create user.",
     };
   }
 
@@ -86,14 +86,14 @@ export async function updateTeamMemberAction(
   const jobTitleRaw = String(formData.get("job_title") ?? "").trim();
   const jobTitle = jobTitleRaw.length > 0 ? jobTitleRaw : null;
 
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   if (!VALID_ROLES.includes(role)) {
-    return { ok: false, error: "Rôle invalide." };
+    return { ok: false, error: "Invalid role." };
   }
   if (id === session.id && role !== "admin") {
     return {
       ok: false,
-      error: "Vous ne pouvez pas changer votre propre rôle.",
+      error: "You cannot change your own role.",
     };
   }
 
@@ -116,9 +116,9 @@ export async function resetTeamMemberPasswordAction(
   const id = String(formData.get("id") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   if (password.length < 8) {
-    return { ok: false, error: "Mot de passe minimum 8 caractères." };
+    return { ok: false, error: "Password must be at least 8 characters." };
   }
 
   const admin = createAdminClient();
@@ -133,11 +133,11 @@ export async function deleteTeamMemberAction(
 ): Promise<ActionResult> {
   const session = await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   if (id === session.id) {
     return {
       ok: false,
-      error: "Vous ne pouvez pas supprimer votre propre compte.",
+      error: "You cannot delete your own account.",
     };
   }
 
@@ -156,15 +156,15 @@ export async function uploadAvatarAction(
   const id = String(formData.get("id") ?? "");
   const file = formData.get("avatar");
 
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, error: "Fichier manquant." };
+    return { ok: false, error: "File missing." };
   }
   if (file.size > 4 * 1024 * 1024) {
-    return { ok: false, error: "Image trop grande (max 4 Mo)." };
+    return { ok: false, error: "Image too large (max 4 MB)." };
   }
   if (!file.type.startsWith("image/")) {
-    return { ok: false, error: "Le fichier doit être une image." };
+    return { ok: false, error: "The file must be an image." };
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
@@ -201,7 +201,7 @@ export async function removeAvatarAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -224,7 +224,7 @@ export async function setFeaturedEmployeeAction(
   const reason = String(formData.get("reason") ?? "").trim() || null;
 
   if (!userId || !/^\d{4}-\d{2}$/.test(month)) {
-    return { ok: false, error: "Membre ou mois invalide." };
+    return { ok: false, error: "Invalid member or month." };
   }
 
   const admin = createAdminClient();
@@ -252,7 +252,7 @@ export async function clearFeaturedEmployeeAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const month = String(formData.get("month") ?? "");
-  if (!month) return { ok: false, error: "Mois manquant." };
+  if (!month) return { ok: false, error: "Missing month." };
 
   const admin = createAdminClient();
   const { error } = await admin

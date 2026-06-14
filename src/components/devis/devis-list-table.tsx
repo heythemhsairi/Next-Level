@@ -38,16 +38,16 @@ const paymentTone: Record<PaymentStatus, "amber" | "blue" | "green"> = {
 };
 
 const statusLabel: Record<DevisStatus, string> = {
-  draft: "Brouillon",
-  sent: "Envoyé",
-  accepted: "Accepté",
-  rejected: "Refusé",
+  draft: "Draft",
+  sent: "Sent",
+  accepted: "Accepted",
+  rejected: "Rejected",
 };
 
 const paymentLabel: Record<PaymentStatus, string> = {
-  unpaid: "Impayé",
-  partial: "Partiel",
-  paid: "Payé",
+  unpaid: "Unpaid",
+  partial: "Partial",
+  paid: "Paid",
 };
 
 const rowAccent: Record<PaymentStatus, string> = {
@@ -79,7 +79,7 @@ export function DevisListTable({
   if (rows.length === 0) {
     return (
       <EmptyState>
-        Aucun{kind === "facture" ? "e facture" : " devis"}. Créez le premier.
+        No {kind === "facture" ? "invoices" : "quotes"} yet. Create the first one.
       </EmptyState>
     );
   }
@@ -91,13 +91,13 @@ export function DevisListTable({
     <Table>
       <THead>
         <TR>
-          <TH>N°</TH>
+          <TH>No.</TH>
           <TH>Client</TH>
           <TH>Date</TH>
-          <TH>Échéance</TH>
-          <TH>Statut</TH>
-          <TH>Paiement</TH>
-          <TH className="text-right">Total TTC</TH>
+          <TH>Due date</TH>
+          <TH>Status</TH>
+          <TH>Payment</TH>
+          <TH className="text-right">Total incl. tax</TH>
         </TR>
       </THead>
       <TBody>
@@ -179,7 +179,7 @@ function StatusMenu({
     >
       {(close) => (
         <>
-          <MenuHeader>Changer le statut</MenuHeader>
+          <MenuHeader>Change status</MenuHeader>
           {(["draft", "sent", "accepted", "rejected"] as DevisStatus[]).map(
             (s) => (
               <MenuItem
@@ -221,7 +221,7 @@ function PaymentMenu({
 
   function resetPayments() {
     if (current === "unpaid") return;
-    if (!confirm("Annuler tous les paiements enregistrés ?")) return;
+    if (!confirm("Cancel all recorded payments?")) return;
     startTransition(async () => {
       await resetPaymentsAction(devisId);
     });
@@ -237,7 +237,7 @@ function PaymentMenu({
     >
       {(close) => (
         <>
-          <MenuHeader>Paiement</MenuHeader>
+          <MenuHeader>Payment</MenuHeader>
           <MenuItem
             disabled={current === "paid"}
             onClick={() => {
@@ -246,7 +246,7 @@ function PaymentMenu({
             }}
           >
             <DotSwatch tone="green" />
-            Marquer payé
+            Mark paid
           </MenuItem>
           <MenuItem
             disabled={current === "unpaid"}
@@ -256,11 +256,11 @@ function PaymentMenu({
             }}
           >
             <DotSwatch tone="amber" />
-            Annuler les paiements
+            Cancel payments
           </MenuItem>
           <div className="my-1 h-px bg-ink/5" />
           <MenuItem asLink href={`/dashboard/devis/${devisId}`}>
-            <span className="text-ink/50">Détails &amp; partiel →</span>
+            <span className="text-ink/50">Details &amp; partial →</span>
           </MenuItem>
         </>
       )}

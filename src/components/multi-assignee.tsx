@@ -21,7 +21,7 @@ export function MultiAssignee({
   people,
   defaultSelected = [],
   name = "assignee_ids",
-  emptyLabel = "Personne",
+  emptyLabel = "No one",
 }: {
   people: AssigneeOption[];
   defaultSelected?: string[];
@@ -78,7 +78,7 @@ export function MultiAssignee({
             <button
               type="button"
               onClick={() => toggle(p.id)}
-              aria-label={`Retirer ${p.label}`}
+              aria-label={`Remove ${p.label}`}
               className="text-brand-dark/50 transition-colors hover:text-red-600 dark:text-brand/60"
             >
               ×
@@ -108,7 +108,7 @@ export function MultiAssignee({
           >
             <path d="M12 5v14M5 12h14" />
           </svg>
-          {chosen.length === 0 ? emptyLabel : "Ajouter"}
+          {chosen.length === 0 ? emptyLabel : "Add"}
         </button>
       </div>
 
@@ -119,7 +119,7 @@ export function MultiAssignee({
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher…"
+              placeholder="Search…"
               className="w-full rounded-md border border-ink/10 bg-white/70 px-2.5 py-1.5 text-xs text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 dark:bg-white/5"
             />
           </div>

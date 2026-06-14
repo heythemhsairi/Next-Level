@@ -107,7 +107,7 @@ export function ProjectForm(props: Props) {
                   required
                   defaultValue={props.defaultClientId ?? ""}
                 >
-                  <option value="">— Choisir un client —</option>
+                  <option value="">— Choose a client —</option>
                   {props.clients.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}

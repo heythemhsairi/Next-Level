@@ -39,12 +39,12 @@ export function TasksList({
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="border-b border-ink/8 bg-white/40 text-left">
-              <Th>Tâche</Th>
-              <Th>Projet</Th>
-              <Th>Assigné</Th>
-              <Th>Priorité</Th>
-              <Th>Statut</Th>
-              <Th>Échéance</Th>
+              <Th>Task</Th>
+              <Th>Project</Th>
+              <Th>Assignee</Th>
+              <Th>Priority</Th>
+              <Th>Status</Th>
+              <Th>Due date</Th>
             </tr>
           </thead>
           <tbody>

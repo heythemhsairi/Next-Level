@@ -16,7 +16,7 @@ export async function rescheduleTaskAction(
   newDeadlineIso: string | null,
 ): Promise<ActionResult> {
   const session = await requireSession();
-  if (!taskId) return { ok: false, error: "Tâche manquante." };
+  if (!taskId) return { ok: false, error: "Task not found." };
 
   const supabase = await createClient();
   const { data: before } = await supabase

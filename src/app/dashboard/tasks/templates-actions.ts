@@ -37,7 +37,7 @@ export async function createTaskTemplateAction(
       : Math.max(0, Number(offsetRaw) || 0);
 
   if (!name || !title) {
-    return { ok: false, error: "Nom et titre requis." };
+    return { ok: false, error: "Name and title are required." };
   }
 
   const supabase = await createClient();
@@ -60,7 +60,7 @@ export async function deleteTaskTemplateAction(
 ): Promise<ActionResult> {
   await requireWorkerOrAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
   const supabase = await createClient();
   const { error } = await supabase.from("task_templates").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };

@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
     months.push({
       key: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`,
-      label: start.toLocaleDateString("fr-FR", { month: "short" }),
+      label: start.toLocaleDateString("en-US", { month: "short" }),
     });
   }
   const oldestStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
@@ -285,7 +285,7 @@ export default async function DashboardPage() {
     const parent = Array.isArray(line.devis) ? line.devis[0] : line.devis;
     if (parent?.status !== "accepted" && parent?.status !== "sent") continue;
     const svc = Array.isArray(line.services) ? line.services[0] : line.services;
-    const name = svc?.name_fr ?? "Autre";
+    const name = svc?.name_fr ?? "Other";
     const t = serviceTally.get(name) ?? { name, total_dt: 0 };
     t.total_dt += Number(line.line_total_dt ?? 0);
     serviceTally.set(name, t);
@@ -303,7 +303,7 @@ export default async function DashboardPage() {
       color: palette[i % palette.length],
     })),
     ...(restTotal > 0
-      ? [{ label: "Autres", value: restTotal, color: palette[6 % palette.length] }]
+      ? [{ label: "Other", value: restTotal, color: palette[6 % palette.length] }]
       : []),
   ];
 

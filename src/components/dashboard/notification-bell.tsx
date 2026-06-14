@@ -21,11 +21,11 @@ export type NotificationRow = {
 
 function relativeTime(iso: string): string {
   const diff = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return "à l'instant";
+  if (diff < 60) return "just now";
   if (diff < 3600) return `${Math.floor(diff / 60)} min`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} h`;
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} j`;
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} d`;
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
   });
@@ -398,7 +398,7 @@ function NotificationItem({
         type="button"
         onClick={onDelete}
         className="shrink-0 text-xs text-ink/30 opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
-        aria-label="Supprimer"
+        aria-label="Delete"
       >
         ×
       </button>

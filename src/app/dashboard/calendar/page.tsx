@@ -58,7 +58,7 @@ export default async function CalendarPage() {
       return {
         id: r.id,
         taskId: r.task_id,
-        title: tk?.title ?? "Tâche supprimée",
+        title: tk?.title ?? "Deleted task",
         project: proj?.name ?? null,
         actor: actor ? (actor.full_name ?? `@${actor.username}`) : null,
         completedAt: r.created_at,

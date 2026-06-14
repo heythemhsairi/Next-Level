@@ -33,10 +33,10 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projets"
+        title="Projects"
         action={
           <Link href="/dashboard/projects/new">
-            <Button>+ Nouveau projet</Button>
+            <Button>+ New project</Button>
           </Link>
         }
       />

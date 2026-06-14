@@ -35,9 +35,9 @@ export async function updateSettingsAction(
   const bankRib = nullable(formData.get("bank_rib"));
   const paymentTerms = nullable(formData.get("payment_terms"));
 
-  if (!companyName) return { ok: false, error: "Nom d'entreprise requis." };
+  if (!companyName) return { ok: false, error: "Company name required." };
   if (!Number.isFinite(tvaRate) || tvaRate < 0 || tvaRate > 100) {
-    return { ok: false, error: "TVA invalide (0-100)." };
+    return { ok: false, error: "Invalid VAT (0-100)." };
   }
 
   const supabase = await createClient();

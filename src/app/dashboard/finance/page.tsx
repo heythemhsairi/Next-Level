@@ -158,7 +158,7 @@ export default async function FinancePage() {
       color: palette[i % palette.length],
     })),
     ...(restTotal > 0
-      ? [{ label: "Autres", value: restTotal, color: palette[6 % palette.length] }]
+      ? [{ label: "Other", value: restTotal, color: palette[6 % palette.length] }]
       : []),
   ];
 
@@ -205,29 +205,29 @@ export default async function FinancePage() {
     <div className="space-y-7">
       <PageHeader
         title="Finances"
-        subtitle="Cash-flow, services, impayés"
+        subtitle="Cash flow, services, outstanding"
       />
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiTile
-          label="Encaissé (mois)"
+          label="Collected (month)"
           value={mtdPaid}
           trend={pctTrend(mtdPaid, prevPaid)}
           tone="green"
         />
         <KpiTile
-          label="Facturé (mois)"
+          label="Invoiced (month)"
           value={mtdInvoiced}
           trend={pctTrend(mtdInvoiced, prevInvoiced)}
           tone="brand"
         />
         <KpiTile
-          label="Encaissé (trimestre)"
+          label="Collected (quarter)"
           value={qtdPaid}
           tone="ink"
         />
         <KpiTile
-          label="Impayés"
+          label="Outstanding"
           value={totalOutstanding}
           tone={totalOutstanding > 0 ? "amber" : "neutral"}
         />
@@ -235,7 +235,7 @@ export default async function FinancePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Chiffre d&apos;affaires — 12 mois</CardTitle>
+          <CardTitle>Revenue — 12 months</CardTitle>
         </CardHeader>
         <CardContent>
           <MonthlyBars series={monthlySeries} height={220} />
@@ -245,9 +245,9 @@ export default async function FinancePage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Services par revenu</CardTitle>
+            <CardTitle>Services by revenue</CardTitle>
             <p className="text-xs text-ink/50">
-              Devis envoyés &amp; acceptés
+              Sent &amp; accepted quotes
             </p>
           </CardHeader>
           <CardContent>
@@ -258,7 +258,7 @@ export default async function FinancePage() {
               </div>
             ) : (
               <p className="py-8 text-center text-sm text-ink/45">
-                Pas encore de devis envoyés.
+                No quotes sent yet.
               </p>
             )}
           </CardContent>
@@ -276,7 +276,7 @@ export default async function FinancePage() {
         <Card className="lg:col-span-1">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Impayés</CardTitle>
+              <CardTitle>Outstanding</CardTitle>
               <Badge tone="amber">{outstanding.length}</Badge>
             </div>
           </CardHeader>
@@ -335,7 +335,7 @@ function KpiTile({
         {trend !== undefined && (
           <div className="mt-1.5 flex items-center gap-2">
             <TrendPill pct={trend} />
-            <span className="text-[11px] text-ink/45">vs mois dernier</span>
+            <span className="text-[11px] text-ink/45">vs last month</span>
           </div>
         )}
       </CardContent>

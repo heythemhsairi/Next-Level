@@ -164,9 +164,9 @@ export async function createDevisAction(
   const session = await requireAdmin();
   const input = pickDevisInput(formData);
 
-  if (!input.client_id) return { ok: false, error: "Client requis." };
+  if (!input.client_id) return { ok: false, error: "Client required." };
   if (input.items.length === 0)
-    return { ok: false, error: "Ajoutez au moins une ligne." };
+    return { ok: false, error: "Add at least one line." };
 
   const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
@@ -183,7 +183,7 @@ export async function createDevisAction(
     if (taken)
       return {
         ok: false,
-        error: `Le numéro ${input.devis_number} est déjà utilisé.`,
+        error: `Number ${input.devis_number} is already in use.`,
       };
     number = input.devis_number;
   } else {
@@ -239,12 +239,12 @@ export async function updateDevisAction(
 ): Promise<ActionResult> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const input = pickDevisInput(formData);
-  if (!input.client_id) return { ok: false, error: "Client requis." };
+  if (!input.client_id) return { ok: false, error: "Client required." };
   if (input.items.length === 0)
-    return { ok: false, error: "Ajoutez au moins une ligne." };
+    return { ok: false, error: "Add at least one line." };
 
   const totals = computeTotals(input.items, input.discount_dt);
   const supabase = await createClient();
@@ -269,7 +269,7 @@ export async function updateDevisAction(
       if (taken)
         return {
           ok: false,
-          error: `Le numéro ${input.devis_number} est déjà utilisé.`,
+          error: `Number ${input.devis_number} is already in use.`,
         };
       numberPatch.devis_number = input.devis_number;
     }
@@ -321,7 +321,7 @@ export async function setDevisStatusAction(
 ): Promise<ActionResult> {
   const session = await requireAdmin();
   if (!DEVIS_STATUSES.includes(status))
-    return { ok: false, error: "Statut invalide." };
+    return { ok: false, error: "Invalid status." };
 
   const supabase = await createClient();
   const { data: before } = await supabase
@@ -348,8 +348,8 @@ export async function setDevisStatusAction(
     const client = Array.isArray(before.clients)
       ? before.clients[0]
       : before.clients;
-    const kindLabel = before.kind === "facture" ? "Facture" : "Devis";
-    const statusLabel = status === "accepted" ? "accepté" : "refusé";
+    const kindLabel = before.kind === "facture" ? "Invoice" : "Quote";
+    const statusLabel = status === "accepted" ? "accepted" : "rejected";
     const baseUrl =
       before.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
     await notifyOtherAdmins(
@@ -400,9 +400,9 @@ export async function recordPaymentAction(
   const method = stringOrNull(formData.get("method"));
   const notes = stringOrNull(formData.get("notes"));
 
-  if (!devisId) return { ok: false, error: "Document manquant." };
+  if (!devisId) return { ok: false, error: "Document not found." };
   if (!Number.isFinite(amount) || amount <= 0)
-    return { ok: false, error: "Montant invalide." };
+    return { ok: false, error: "Invalid amount." };
 
   const supabase = await createClient();
   const { error: payErr } = await supabase.from("payments").insert({
@@ -433,7 +433,7 @@ export async function markFullyPaidAction(
 ): Promise<ActionResult> {
   const session = await requireAdmin();
   const devisId = String(formData.get("devis_id") ?? "");
-  if (!devisId) return { ok: false, error: "Document manquant." };
+  if (!devisId) return { ok: false, error: "Document not found." };
 
   const supabase = await createClient();
   const { data: devis } = await supabase
@@ -458,7 +458,7 @@ export async function markFullyPaidAction(
       devis_id: devisId,
       amount_dt: remaining,
       paid_at: new Date().toISOString().slice(0, 10),
-      method: "Solde marqué payé",
+      method: "Balance marked paid",
       recorded_by: session.id,
     });
     if (error) return { ok: false, error: error.message };
@@ -470,13 +470,13 @@ export async function markFullyPaidAction(
     const client = Array.isArray(devis.clients)
       ? devis.clients[0]
       : devis.clients;
-    const kindLabel = devis.kind === "facture" ? "Facture" : "Devis";
+    const kindLabel = devis.kind === "facture" ? "Invoice" : "Quote";
     const baseUrl =
       devis.kind === "facture" ? "/dashboard/factures" : "/dashboard/devis";
     await notifyOtherAdmins(
       session.id,
       "devis_paid",
-      `${kindLabel} #${devis.devis_number} payée — ${client?.name ?? "—"} (${total.toFixed(2)} DT)`,
+      `${kindLabel} #${devis.devis_number} paid — ${client?.name ?? "—"} (${total.toFixed(2)} DT)`,
       `${baseUrl}/${devisId}`,
     );
   }
@@ -518,12 +518,12 @@ async function recomputePaymentStatus(
 }
 
 // Reset all payments → mark as unpaid. Used from the quick payment menu in
-// the list view to "annuler les paiements" without going to the detail page.
+// the list view to "cancel the payments" without going to the detail page.
 export async function resetPaymentsAction(
   devisId: string,
 ): Promise<ActionResult> {
   await requireAdmin();
-  if (!devisId) return { ok: false, error: "Document manquant." };
+  if (!devisId) return { ok: false, error: "Document not found." };
 
   const supabase = await createClient();
   const { error: delErr } = await supabase
@@ -553,7 +553,7 @@ export async function convertDevisToFactureAction(
   devisId: string,
 ): Promise<{ ok: true; factureId: string } | { ok: false; error: string }> {
   const session = await requireAdmin();
-  if (!devisId) return { ok: false, error: "Devis manquant." };
+  if (!devisId) return { ok: false, error: "Quote not found." };
 
   const supabase = await createClient();
 
@@ -564,9 +564,9 @@ export async function convertDevisToFactureAction(
     )
     .eq("id", devisId)
     .single();
-  if (!source) return { ok: false, error: "Devis introuvable." };
+  if (!source) return { ok: false, error: "Quote not found." };
   if (source.kind !== "devis")
-    return { ok: false, error: "Seul un devis peut être converti." };
+    return { ok: false, error: "Only a quote can be converted." };
 
   // Avoid creating two factures for the same devis
   const { data: already } = await supabase
@@ -607,7 +607,7 @@ export async function convertDevisToFactureAction(
     .select("id")
     .single();
   if (insErr || !facture)
-    return { ok: false, error: insErr?.message ?? "Échec de la conversion." };
+    return { ok: false, error: insErr?.message ?? "Conversion failed." };
 
   const itemRows = (source.devis_items ?? []).map((it) => ({
     devis_id: facture.id,
@@ -641,7 +641,7 @@ export async function deleteDevisAction(
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const kind = String(formData.get("kind") ?? "devis") as DevisKind;
-  if (!id) return { ok: false, error: "ID manquant." };
+  if (!id) return { ok: false, error: "Missing ID." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("devis").delete().eq("id", id);
