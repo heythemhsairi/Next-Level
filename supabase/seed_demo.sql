@@ -43,9 +43,19 @@ begin
   end if;
 
   -- ---- Client + project --------------------------------------------------
-  insert into public.clients (name, email, phone, notes, created_by, owner_id)
-  values ('DEMO · Atlas Media', 'hello@atlasmedia.test', '+216 20 000 000', 'DEMO seed', v_admin, v_admin)
-  returning id into v_client;
+  -- Prefer an EXISTING client that already has a portal login, so the signed-in
+  -- client actually sees this demo content. Fall back to creating a demo client.
+  select c.id into v_client
+  from public.clients c
+  join public.profiles p on p.client_id = c.id and p.role = 'client'
+  order by c.created_at
+  limit 1;
+
+  if v_client is null then
+    insert into public.clients (name, email, phone, notes, created_by, owner_id)
+    values ('DEMO · Atlas Media', 'hello@atlasmedia.test', '+216 20 000 000', 'DEMO seed', v_admin, v_admin)
+    returning id into v_client;
+  end if;
 
   insert into public.projects (client_id, name, description, status, owner_id, start_date)
   values (v_client, 'DEMO · Q2 Brand Films', 'Demo project', 'active', v_admin, current_date - 30)

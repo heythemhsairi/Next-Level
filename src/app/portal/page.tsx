@@ -10,6 +10,8 @@ import {
   DELIVERABLE_STATUS_TONE,
   type DeliverableStatus,
 } from "./deliverable-status";
+import { ProjectProgressCard, type ProjectProgress } from "./project-progress";
+import { UpcomingTimeline, type TimelineItem } from "./upcoming-timeline";
 
 type RecentVideo = {
   id: string;
@@ -17,29 +19,51 @@ type RecentVideo = {
   status: DeliverableStatus;
   delivered_at: string | null;
   video_url: string | null;
+  project_id: string | null;
 };
 
 export default async function PortalHome() {
   const session = await requireClient();
   const supabase = await createClient();
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+
   // RLS already scopes every query to this client's own rows.
-  const [{ data: client }, { data: videos }, { data: invoices }, { data: tasks }] =
-    await Promise.all([
-      session.client_id
-        ? supabase.from("clients").select("name").eq("id", session.client_id).maybeSingle()
-        : Promise.resolve({ data: null as { name: string } | null }),
-      supabase
-        .from("deliverables")
-        .select("id, title, status, delivered_at, video_url")
-        .eq("client_visible", true)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("devis")
-        .select("id, total_dt, payment_status, kind")
-        .eq("kind", "facture"),
-      supabase.from("tasks").select("id, status"),
-    ]);
+  const [
+    { data: client },
+    { data: videos },
+    { data: invoices },
+    { data: tasks },
+    { data: projects },
+    { data: upcoming },
+  ] = await Promise.all([
+    session.client_id
+      ? supabase.from("clients").select("name").eq("id", session.client_id).maybeSingle()
+      : Promise.resolve({ data: null as { name: string } | null }),
+    supabase
+      .from("deliverables")
+      .select("id, title, status, delivered_at, video_url, project_id")
+      .eq("client_visible", true)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("devis")
+      .select("id, total_dt, payment_status, kind")
+      .eq("kind", "facture"),
+    supabase.from("tasks").select("id, status"),
+    supabase
+      .from("projects")
+      .select("id, name, status")
+      .eq("status", "active")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("tasks")
+      .select("id, title, deadline, projects:project_id(name)")
+      .not("deadline", "is", null)
+      .gte("deadline", todayIso)
+      .in("status", ["todo", "in_progress", "review"])
+      .order("deadline", { ascending: true })
+      .limit(6),
+  ]);
 
   const allVideos = (videos ?? []) as RecentVideo[];
   const totalVideos = allVideos.length;
@@ -57,6 +81,31 @@ export default async function PortalHome() {
   const firstName = (client?.name ?? session.full_name ?? session.username).split(
     " ",
   )[0];
+
+  // Per-project progress: delivered videos vs total videos shared on it.
+  const progressByProject = new Map<string, { delivered: number; total: number }>();
+  for (const v of allVideos) {
+    if (!v.project_id) continue;
+    const agg = progressByProject.get(v.project_id) ?? { delivered: 0, total: 0 };
+    agg.total += 1;
+    if (v.status === "delivered") agg.delivered += 1;
+    progressByProject.set(v.project_id, agg);
+  }
+  const projectProgress: ProjectProgress[] = (projects ?? []).map((p) => {
+    const agg = progressByProject.get(p.id) ?? { delivered: 0, total: 0 };
+    return { id: p.id, name: p.name, delivered: agg.delivered, total: agg.total };
+  });
+
+  // Upcoming timeline from tasks with future deadlines.
+  const timeline: TimelineItem[] = (upcoming ?? []).map((tk) => {
+    const proj = Array.isArray(tk.projects) ? tk.projects[0] : tk.projects;
+    return {
+      id: tk.id,
+      title: tk.title,
+      project: proj?.name ?? null,
+      date: tk.deadline as string,
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -111,6 +160,11 @@ export default async function PortalHome() {
           tone={outstanding > 0 ? "alert" : "ok"}
         />
         <Stat label="Active tasks" value={String(activeTasks)} />
+      </section>
+
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <ProjectProgressCard projects={projectProgress} />
+        <UpcomingTimeline items={timeline} />
       </section>
 
       <Card>
