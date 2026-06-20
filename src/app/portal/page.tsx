@@ -3,6 +3,7 @@ import { requireClient } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProgressRing } from "@/components/charts/progress-ring";
 import { formatDt, formatDate } from "@/lib/format";
 import {
   DELIVERABLE_STATUS_LABEL,
@@ -23,8 +24,11 @@ export default async function PortalHome() {
   const supabase = await createClient();
 
   // RLS already scopes every query to this client's own rows.
-  const [{ data: videos }, { data: invoices }, { data: tasks }] =
+  const [{ data: client }, { data: videos }, { data: invoices }, { data: tasks }] =
     await Promise.all([
+      session.client_id
+        ? supabase.from("clients").select("name").eq("id", session.client_id).maybeSingle()
+        : Promise.resolve({ data: null as { name: string } | null }),
       supabase
         .from("deliverables")
         .select("id, title, status, delivered_at, video_url")
@@ -37,9 +41,9 @@ export default async function PortalHome() {
       supabase.from("tasks").select("id, status"),
     ]);
 
-  const deliveredCount = (videos ?? []).filter(
-    (v) => v.status === "delivered",
-  ).length;
+  const allVideos = (videos ?? []) as RecentVideo[];
+  const totalVideos = allVideos.length;
+  const deliveredCount = allVideos.filter((v) => v.status === "delivered").length;
   const activeTasks = (tasks ?? []).filter(
     (t) => t.status !== "done" && t.status !== "cancelled",
   ).length;
@@ -47,22 +51,65 @@ export default async function PortalHome() {
     .filter((i) => i.payment_status !== "paid")
     .reduce((sum, i) => sum + Number(i.total_dt ?? 0), 0);
 
-  const recentVideos = ((videos ?? []) as RecentVideo[]).slice(0, 5);
+  const deliveryPct =
+    totalVideos > 0 ? Math.round((deliveredCount / totalVideos) * 100) : 0;
+  const recentVideos = allVideos.slice(0, 5);
+  const firstName = (client?.name ?? session.full_name ?? session.username).split(
+    " ",
+  )[0];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-ink">
-          Welcome back
-        </h1>
-        <p className="mt-1 text-sm text-ink/55">
-          Here's the latest on your videos, payments, and work in progress.
-        </p>
-      </div>
+      {/* Cinematic hero with a live delivery-progress ring. */}
+      <section className="reveal relative overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br from-brand via-brand-dark to-[#170406] p-6 shadow-brand-glow sm:p-8 surface-grain">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand-light/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-brand/40 blur-3xl" />
+
+        <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-[11px] font-display font-bold uppercase tracking-[0.22em] text-cream/80">
+              Your studio · {client?.name ?? "Welcome"}
+            </p>
+            <h1 className="mt-2 text-3xl font-display font-extrabold tracking-tight text-white md:text-[38px]">
+              Welcome back, {firstName} 👋
+            </h1>
+            <p className="mt-1.5 text-sm text-cream/70">
+              Your videos, payments, and work in progress — all in one place.
+            </p>
+          </div>
+
+          {totalVideos > 0 && (
+            <div className="flex shrink-0 items-center gap-3">
+              <ProgressRing
+                value={deliveryPct}
+                size={84}
+                thickness={8}
+                color="#FFFFFF"
+                trackColor="rgba(0,0,0,0.25)"
+                label={
+                  <span className="text-base font-bold text-white tabular-nums">
+                    {deliveryPct}%
+                  </span>
+                }
+              />
+              <div className="text-xs leading-tight text-cream/75">
+                <p className="font-semibold text-white">
+                  {deliveredCount} of {totalVideos}
+                </p>
+                <p>videos delivered</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat label="Videos delivered" value={String(deliveredCount)} />
-        <Stat label="Outstanding balance" value={formatDt(outstanding)} />
+        <Stat
+          label="Outstanding balance"
+          value={formatDt(outstanding)}
+          tone={outstanding > 0 ? "alert" : "ok"}
+        />
         <Stat label="Active tasks" value={String(activeTasks)} />
       </section>
 
@@ -81,7 +128,7 @@ export default async function PortalHome() {
         <CardContent>
           {recentVideos.length === 0 ? (
             <p className="py-6 text-center text-sm text-ink/50">
-              No videos shared with you yet.
+              No videos shared with you yet — your team will post them here.
             </p>
           ) : (
             <ul className="divide-y divide-white/10">
@@ -125,12 +172,30 @@ export default async function PortalHome() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: "neutral" | "alert" | "ok";
+}) {
+  const accent =
+    tone === "alert"
+      ? "text-brand-light"
+      : tone === "ok"
+        ? "text-emerald-400"
+        : "text-ink";
   return (
-    <Card>
+    <Card interactive>
       <CardContent className="p-5">
-        <p className="text-xs uppercase tracking-wide text-ink/45">{label}</p>
-        <p className="mt-1 text-2xl font-black text-ink">{value}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">
+          {label}
+        </p>
+        <p className={`mt-1.5 text-2xl font-display font-extrabold tracking-tight ${accent}`}>
+          {value}
+        </p>
       </CardContent>
     </Card>
   );
