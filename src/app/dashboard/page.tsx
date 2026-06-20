@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
 import { AdminHome } from "@/components/home/admin-home";
+import { SalesHome } from "@/components/home/sales-home";
 import { getMomentum, type Momentum } from "@/lib/momentum";
 import { getDonutPalette } from "@/components/charts/palette";
 import { type StaleDevisRow } from "@/components/stale-devis-banner";
@@ -46,6 +47,9 @@ export default async function DashboardPage() {
     .slice(0, 10);
 
   const isAdmin = session.role === "admin";
+  const isSales = session.role === "sales";
+  // Admin + sales both see money + pipeline data (RLS still scopes sales rows).
+  const canSeeMoney = isAdmin || isSales;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayIso = today.toISOString().slice(0, 10);
@@ -177,7 +181,7 @@ export default async function DashboardPage() {
   };
   type PaymentRow = { amount_dt: number; paid_at: string };
 
-  const devisRows: DevisRow[] = isAdmin
+  const devisRows: DevisRow[] = canSeeMoney
     ? await safe(
         async () => {
           const { data } = await supabase
@@ -190,7 +194,7 @@ export default async function DashboardPage() {
         "devis",
       )
     : [];
-  const paymentRows: PaymentRow[] = isAdmin
+  const paymentRows: PaymentRow[] = canSeeMoney
     ? await safe(
         async () => {
           const { data } = await supabase
@@ -264,7 +268,7 @@ export default async function DashboardPage() {
     services: { name_fr?: string } | { name_fr?: string }[] | null;
     devis: { status?: string } | { status?: string }[] | null;
   };
-  const serviceLines: ServiceLine[] = isAdmin
+  const serviceLines: ServiceLine[] = canSeeMoney
     ? await safe(
         async () => {
           const { data } = await supabase
@@ -317,7 +321,7 @@ export default async function DashboardPage() {
     date: string;
     client_name: string;
   };
-  const recentDevis: RecentDevis[] = isAdmin
+  const recentDevis: RecentDevis[] = canSeeMoney
     ? await safe(
         async () => {
           const { data } = await supabase
@@ -405,7 +409,7 @@ export default async function DashboardPage() {
   );
 
   // ---- Stale "sent" devis (admin) — for follow-up banner ----
-  const staleDevis: StaleDevisRow[] = isAdmin
+  const staleDevis: StaleDevisRow[] = canSeeMoney
     ? await safe(
         async () => {
           const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -552,6 +556,67 @@ export default async function DashboardPage() {
     "featured",
   );
 
+  // ---- Sales pipeline: lead stage counts + value, and hottest leads ----
+  type LeadStage = "new" | "contacted" | "qualified" | "won" | "lost";
+  type HotLead = {
+    id: string;
+    name: string;
+    status: string;
+    value: number | null;
+    contact: string | null;
+  };
+  const pipeline = canSeeMoney
+    ? await safe(
+        async () => {
+          const { data } = await supabase
+            .from("leads")
+            .select("id, name, status, value_estimate_dt, contact_email, created_at")
+            .order("created_at", { ascending: false });
+          const rows = data ?? [];
+          const stageCounts: Record<LeadStage, number> = {
+            new: 0,
+            contacted: 0,
+            qualified: 0,
+            won: 0,
+            lost: 0,
+          };
+          let openValue = 0;
+          for (const l of rows) {
+            const st = l.status as LeadStage;
+            if (st in stageCounts) stageCounts[st]++;
+            if (st === "new" || st === "contacted" || st === "qualified") {
+              openValue += Number(l.value_estimate_dt ?? 0);
+            }
+          }
+          // Hot = qualified first, then contacted, newest within each.
+          const hot: HotLead[] = rows
+            .filter((l) => l.status === "qualified" || l.status === "contacted")
+            .sort((a, b) =>
+              a.status === b.status ? 0 : a.status === "qualified" ? -1 : 1,
+            )
+            .slice(0, 5)
+            .map((l) => ({
+              id: l.id,
+              name: l.name,
+              status: l.status,
+              value: l.value_estimate_dt ? Number(l.value_estimate_dt) : null,
+              contact: l.contact_email ?? null,
+            }));
+          return { stageCounts, openValue, hot };
+        },
+        {
+          stageCounts: { new: 0, contacted: 0, qualified: 0, won: 0, lost: 0 },
+          openValue: 0,
+          hot: [] as HotLead[],
+        },
+        "pipeline",
+      )
+    : {
+        stageCounts: { new: 0, contacted: 0, qualified: 0, won: 0, lost: 0 },
+        openValue: 0,
+        hot: [] as HotLead[],
+      };
+
   // ---- Momentum (real-data motivation; role-gated inside the helper) ----
   const momentum: Momentum = await safe(
     () => getMomentum(session.role, session.id),
@@ -570,8 +635,9 @@ export default async function DashboardPage() {
     "momentum",
   );
 
-  // Build the action-center tiles (only nonzero ones render).
-  const actionItems: ActionItem[] = [
+  // Action-center tiles (only nonzero ones render). Scoped per role: sales
+  // sees money/lead signals; editor sees production; admin sees everything.
+  const moneyActions: ActionItem[] = [
     {
       label: "Overdue invoices",
       count: staleDevis.length,
@@ -584,6 +650,14 @@ export default async function DashboardPage() {
         </>
       ),
     },
+    {
+      label: "New leads",
+      count: pipeline.stageCounts.new,
+      href: "/dashboard/leads",
+      icon: <path d="M3 17l5-5 4 4 9-9 M21 7v5h-5" />,
+    },
+  ];
+  const workActions: ActionItem[] = [
     {
       label: "Revisions requested",
       count: revisionRequested,
@@ -611,16 +685,23 @@ export default async function DashboardPage() {
       icon: <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z M4 9h16 M8 3v3 M16 3v3" />,
     },
   ];
+  const actionItems: ActionItem[] = isSales
+    ? moneyActions
+    : isAdmin
+      ? [...moneyActions.slice(0, 1), ...workActions]
+      : workActions;
 
   return (
     <div className="space-y-7">
       <ActionCenter items={actionItems} />
-      <TodaySummary
-        overdueCount={summaryOverdue}
-        dueTodayCount={summaryDueToday}
-        scope={isAdmin ? "team" : "me"}
-      />
-      {priorityPins.length > 0 && (
+      {!isSales && (
+        <TodaySummary
+          overdueCount={summaryOverdue}
+          dueTodayCount={summaryDueToday}
+          scope={isAdmin ? "team" : "me"}
+        />
+      )}
+      {!isSales && priorityPins.length > 0 && (
         <PriorityPinsSection
           pins={priorityPins.map((p) => ({
             pinId: p.id,
@@ -635,7 +716,15 @@ export default async function DashboardPage() {
         />
       )}
 
-      {isAdmin ? (
+      {isSales ? (
+        <SalesHome
+          firstName={(session.full_name ?? session.username).split(" ")[0]}
+          momentum={momentum}
+          pipeline={pipeline}
+          staleDevis={staleDevis}
+          recentDevis={recentDevis}
+        />
+      ) : isAdmin ? (
         <AdminHome
           firstName={(session.full_name ?? session.username).split(" ")[0]}
           revenue={{
