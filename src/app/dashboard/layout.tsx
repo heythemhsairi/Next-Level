@@ -4,6 +4,7 @@ import { SideNav } from "@/components/dashboard/side-nav";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { CommandPalette } from "@/components/command-palette";
 import type { NotificationRow } from "@/components/dashboard/notification-bell";
+import { getNavCounts, type NavCounts } from "@/lib/nav-counts";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +27,14 @@ export default async function DashboardLayout({
     notifications = (data ?? []) as NotificationRow[];
   } catch (err) {
     console.error("[layout:notifications]", err);
+  }
+
+  // Live sidebar badge counts (role-gated; failures degrade to 0).
+  let navCounts: NavCounts | undefined;
+  try {
+    navCounts = await getNavCounts(session.role, session.id);
+  } catch (err) {
+    console.error("[layout:navCounts]", err);
   }
 
   return (
@@ -51,11 +60,12 @@ export default async function DashboardLayout({
         username={session.username}
         avatarUrl={session.avatar_url}
         jobTitle={session.job_title}
+        counts={navCounts}
       />
 
       {/* Content column, offset by the sidebar on desktop. */}
       <div className="lg:pl-[252px]">
-        <TopBar role={session.role} notifications={notifications} />
+        <TopBar role={session.role} notifications={notifications} counts={navCounts} />
         <main className="reveal px-4 py-7 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-[1280px] space-y-8">
             {children}

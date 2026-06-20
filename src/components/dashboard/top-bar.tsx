@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { NotificationBell, type NotificationRow } from "./notification-bell";
 import { MobileSideNav } from "./side-nav";
 import type { AnyUserRole } from "@/lib/utils";
+import type { NavCounts } from "@/lib/nav-counts";
 
 /**
  * Slim top bar that pairs with the left SideNav: a global search trigger,
@@ -14,9 +15,11 @@ import type { AnyUserRole } from "@/lib/utils";
 export function TopBar({
   role,
   notifications,
+  counts,
 }: {
   role: AnyUserRole;
   notifications: NotificationRow[];
+  counts?: NavCounts;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -57,7 +60,7 @@ export function TopBar({
         <NotificationBell initial={notifications} />
       </div>
 
-      <MobileSideNav role={role} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileSideNav role={role} open={menuOpen} onClose={() => setMenuOpen(false)} counts={counts} />
     </header>
   );
 }

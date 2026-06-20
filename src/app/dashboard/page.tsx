@@ -4,7 +4,6 @@ import { OverviewClient } from "./overview-client";
 import { getDonutPalette } from "@/components/charts/palette";
 import { type StaleDevisRow } from "@/components/stale-devis-banner";
 import { PriorityPinsSection } from "./priorities-section";
-import { QuickActions } from "@/components/dashboard/quick-actions";
 import { TodaySummary } from "@/components/dashboard/today-summary";
 import { ActionCenter, type ActionItem } from "@/components/dashboard/action-center";
 
@@ -595,7 +594,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-7">
-      <QuickActions role={session.role} />
       <ActionCenter items={actionItems} />
       <TodaySummary
         overdueCount={summaryOverdue}

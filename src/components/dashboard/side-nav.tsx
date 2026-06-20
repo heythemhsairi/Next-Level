@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn, type AnyUserRole } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand-logo";
 import { Avatar } from "@/components/avatar";
 import { createClient } from "@/lib/supabase/client";
+import type { NavCounts } from "@/lib/nav-counts";
 
-type Group = "workspace" | "sales" | "admin";
+// Role-meaningful groups. `primary` items render pinned at the very top with
+// no header ("what matters now"); the rest render under collapsible headers.
+type Group = "primary" | "work" | "pipeline" | "money" | "team" | "system";
+
+type BadgeKey = keyof NavCounts;
 
 type NavItem = {
   href: string;
@@ -17,6 +22,7 @@ type NavItem = {
   rolesAllowed: AnyUserRole[];
   icon: string;
   group: Group;
+  badgeKey?: BadgeKey;
 };
 
 const ICONS: Record<string, string> = {
@@ -51,36 +57,81 @@ const ICONS: Record<string, string> = {
 };
 
 const GROUP_LABEL: Record<Group, string> = {
-  workspace: "Workspace",
-  sales: "Sales",
-  admin: "Admin",
+  primary: "",
+  work: "Work",
+  pipeline: "Pipeline",
+  money: "Money",
+  team: "Team",
+  system: "System",
 };
-const GROUP_ORDER: Group[] = ["workspace", "sales", "admin"];
+const GROUP_ORDER: Group[] = [
+  "primary",
+  "work",
+  "pipeline",
+  "money",
+  "team",
+  "system",
+];
+
+const ADMIN_ALL: AnyUserRole[] = ["admin"];
+const EDITORS: AnyUserRole[] = ["admin", "editor", "worker", "freelancer"];
+const SALES: AnyUserRole[] = ["admin", "sales"];
+const STAFF: AnyUserRole[] = [
+  "admin",
+  "editor",
+  "sales",
+  "worker",
+  "freelancer",
+];
 
 function buildNav(t: ReturnType<typeof useI18n>["t"]): NavItem[] {
-  const editors: AnyUserRole[] = ["admin", "editor", "worker", "freelancer"];
-  const all: AnyUserRole[] = ["admin", "editor", "sales", "worker", "freelancer"];
-  const salesRoles: AnyUserRole[] = ["admin", "sales"];
   return [
-    { href: "/dashboard", label: t.nav.overview, icon: ICONS.overview, rolesAllowed: all, group: "workspace" },
-    { href: "/dashboard/tasks", label: t.nav.tasks, icon: ICONS.tasks, rolesAllowed: editors, group: "workspace" },
-    { href: "/dashboard/deliverables", label: t.nav.deliverables, icon: ICONS.deliverables, rolesAllowed: editors, group: "workspace" },
-    { href: "/dashboard/projects", label: t.nav.projects, icon: ICONS.projects, rolesAllowed: all, group: "workspace" },
-    { href: "/dashboard/calendar", label: t.nav.calendar, icon: ICONS.calendar, rolesAllowed: editors, group: "workspace" },
-    { href: "/dashboard/messages", label: t.nav.messages, icon: ICONS.messages, rolesAllowed: all, group: "workspace" },
-    { href: "/dashboard/files", label: t.nav.files, icon: ICONS.files, rolesAllowed: all, group: "workspace" },
-    { href: "/dashboard/announcements", label: t.nav.announcements, icon: ICONS.announcements, rolesAllowed: all, group: "workspace" },
-    { href: "/dashboard/social-media", label: t.nav.socialMedia, icon: ICONS.socialMedia, rolesAllowed: ["admin", "editor", "worker"], group: "workspace" },
-    { href: "/dashboard/leads", label: t.nav.leads, icon: ICONS.leads, rolesAllowed: salesRoles, group: "sales" },
-    { href: "/dashboard/clients", label: t.nav.clients, icon: ICONS.clients, rolesAllowed: salesRoles, group: "sales" },
-    { href: "/dashboard/devis", label: t.nav.devis, icon: ICONS.devis, rolesAllowed: salesRoles, group: "sales" },
-    { href: "/dashboard/factures", label: t.nav.factures, icon: ICONS.factures, rolesAllowed: salesRoles, group: "sales" },
-    { href: "/dashboard/finance", label: t.nav.finance, icon: ICONS.finance, rolesAllowed: salesRoles, group: "sales" },
-    { href: "/dashboard/analytics", label: t.nav.analytics, icon: ICONS.analytics, rolesAllowed: ["admin", "sales"], group: "sales" },
-    { href: "/dashboard/services", label: t.nav.services, icon: ICONS.services, rolesAllowed: ["admin"], group: "admin" },
-    { href: "/dashboard/team", label: t.nav.team, icon: ICONS.team, rolesAllowed: ["admin"], group: "admin" },
-    { href: "/dashboard/settings", label: t.nav.settings, icon: ICONS.settings, rolesAllowed: ["admin"], group: "admin" },
+    // PRIMARY — pinned "what matters now"
+    { href: "/dashboard", label: t.nav.overview, icon: ICONS.overview, rolesAllowed: STAFF, group: "primary" },
+    { href: "/dashboard/messages", label: t.nav.messages, icon: ICONS.messages, rolesAllowed: STAFF, group: "primary" },
+
+    // WORK — production (admin + editor)
+    { href: "/dashboard/tasks", label: t.nav.tasks, icon: ICONS.tasks, rolesAllowed: EDITORS, group: "work", badgeKey: "myTasksDue" },
+    { href: "/dashboard/deliverables", label: t.nav.deliverables, icon: ICONS.deliverables, rolesAllowed: EDITORS, group: "work", badgeKey: "deliverablesInReview" },
+    { href: "/dashboard/projects", label: t.nav.projects, icon: ICONS.projects, rolesAllowed: STAFF, group: "work" },
+    { href: "/dashboard/calendar", label: t.nav.calendar, icon: ICONS.calendar, rolesAllowed: EDITORS, group: "work" },
+    { href: "/dashboard/social-media", label: t.nav.socialMedia, icon: ICONS.socialMedia, rolesAllowed: ["admin", "editor", "worker"], group: "work" },
+
+    // PIPELINE — commercial (admin + sales)
+    { href: "/dashboard/leads", label: t.nav.leads, icon: ICONS.leads, rolesAllowed: SALES, group: "pipeline", badgeKey: "newLeads" },
+    { href: "/dashboard/clients", label: t.nav.clients, icon: ICONS.clients, rolesAllowed: SALES, group: "pipeline" },
+    { href: "/dashboard/analytics", label: t.nav.analytics, icon: ICONS.analytics, rolesAllowed: ["admin", "sales"], group: "pipeline" },
+
+    // MONEY — quotes / invoices / cash (admin + sales)
+    { href: "/dashboard/devis", label: t.nav.devis, icon: ICONS.devis, rolesAllowed: SALES, group: "money" },
+    { href: "/dashboard/factures", label: t.nav.factures, icon: ICONS.factures, rolesAllowed: SALES, group: "money", badgeKey: "unpaidFactures" },
+    { href: "/dashboard/finance", label: t.nav.finance, icon: ICONS.finance, rolesAllowed: SALES, group: "money" },
+
+    // TEAM — shared workspace surfaces
+    { href: "/dashboard/announcements", label: t.nav.announcements, icon: ICONS.announcements, rolesAllowed: STAFF, group: "team" },
+    { href: "/dashboard/files", label: t.nav.files, icon: ICONS.files, rolesAllowed: STAFF, group: "team" },
+    { href: "/dashboard/team", label: t.nav.team, icon: ICONS.team, rolesAllowed: ADMIN_ALL, group: "team" },
+
+    // SYSTEM — admin config
+    { href: "/dashboard/services", label: t.nav.services, icon: ICONS.services, rolesAllowed: ADMIN_ALL, group: "system" },
+    { href: "/dashboard/settings", label: t.nav.settings, icon: ICONS.settings, rolesAllowed: ADMIN_ALL, group: "system" },
   ];
+}
+
+/** Per-role primary action shown above the nav. */
+function primaryActionFor(role: AnyUserRole): {
+  href: string;
+  label: string;
+  icon: string;
+} {
+  if (role === "sales") {
+    return { href: "/dashboard/devis/new", label: "New quote", icon: "M12 5v14 M5 12h14" };
+  }
+  if (role === "editor" || role === "worker" || role === "freelancer") {
+    return { href: "/dashboard/tasks/new", label: "New task", icon: "M12 5v14 M5 12h14" };
+  }
+  // admin (default)
+  return { href: "/dashboard/devis/new", label: "New quote", icon: "M12 5v14 M5 12h14" };
 }
 
 function isActive(pathname: string, href: string) {
@@ -97,58 +148,167 @@ function NavIcon({ d }: { d: string }) {
   );
 }
 
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("transition-transform duration-200", open ? "" : "-rotate-90")}
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+function NavLink({
+  item,
+  active,
+  badge,
+  onNavigate,
+}: {
+  item: NavItem;
+  active: boolean;
+  badge?: number;
+  onNavigate?: () => void;
+}) {
+  return (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={cn(
+        "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
+        active
+          ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-brand-glow"
+          : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
+      )}
+    >
+      {active && (
+        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light shadow-[0_0_10px_rgba(255,42,42,0.8)]" />
+      )}
+      <NavIcon d={item.icon} />
+      <span className="relative flex-1 truncate">{item.label}</span>
+      {badge && badge > 0 ? (
+        <span
+          className={cn(
+            "relative shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums",
+            active
+              ? "bg-white/25 text-white"
+              : "bg-brand/15 text-brand-light ring-1 ring-brand/25",
+          )}
+        >
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
+
 function NavList({
   items,
   pathname,
+  counts,
   onNavigate,
 }: {
   items: NavItem[];
   pathname: string;
+  counts?: NavCounts;
   onNavigate?: () => void;
 }) {
-  const { t } = useI18n();
+  // Collapsible group state, persisted per-group. Default: everything open.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("nl:nav-collapsed");
+      if (raw) setCollapsed(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function toggle(group: Group) {
+    setCollapsed((prev) => {
+      const next = { ...prev, [group]: !prev[group] };
+      try {
+        localStorage.setItem("nl:nav-collapsed", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
   return (
     <>
       {GROUP_ORDER.map((group) => {
         const groupItems = items.filter((i) => i.group === group);
         if (groupItems.length === 0) return null;
+
+        const renderItem = (item: NavItem) => (
+          <NavLink
+            key={item.href}
+            item={item}
+            active={isActive(pathname, item.href)}
+            badge={item.badgeKey ? counts?.[item.badgeKey] : undefined}
+            onNavigate={onNavigate}
+          />
+        );
+
+        // Primary group: no header, no collapse — always pinned at the top.
+        if (group === "primary") {
+          return (
+            <div key={group} className="mb-4">
+              <nav className="space-y-1">{groupItems.map(renderItem)}</nav>
+            </div>
+          );
+        }
+
+        const isOpen = !collapsed[group];
         return (
           <div key={group} className="mb-5 last:mb-0">
-            <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/35">
-              {GROUP_LABEL[group]}
-            </p>
-            <nav className="space-y-1">
-              {groupItems.map((item) => {
-                const active = isActive(pathname, item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onNavigate}
-                    className={cn(
-                      "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
-                      active
-                        ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-brand-glow"
-                        : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
-                    )}
-                  >
-                    {active && (
-                      <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light shadow-[0_0_10px_rgba(225,29,42,0.8)]" />
-                    )}
-                    <NavIcon d={item.icon} />
-                    <span className="relative flex-1 truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <button
+              type="button"
+              onClick={() => toggle(group)}
+              className="flex w-full items-center justify-between rounded-lg px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/35 transition-colors hover:text-ink/55"
+            >
+              <span>{GROUP_LABEL[group]}</span>
+              <Chevron open={isOpen} />
+            </button>
+            {isOpen && (
+              <nav className="space-y-1">{groupItems.map(renderItem)}</nav>
+            )}
           </div>
         );
       })}
-      <p className="px-3 pt-1 text-[10px] uppercase tracking-[0.2em] text-ink/20">
-        {/* keeps the i18n hook used even if groups collapse */}
-        {t.nav.overview ? "" : ""}
-      </p>
     </>
+  );
+}
+
+function PrimaryAction({
+  role,
+  onNavigate,
+}: {
+  role: AnyUserRole;
+  onNavigate?: () => void;
+}) {
+  const action = primaryActionFor(role);
+  return (
+    <Link
+      href={action.href}
+      onClick={onNavigate}
+      className="group mb-4 flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#FF2A2A,#B00C12)] px-3 py-2.5 text-[13.5px] font-display font-bold text-white shadow-brand-glow transition-all duration-300 hover:-translate-y-[2px] hover:shadow-brand-glow-hover"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d={action.icon} />
+      </svg>
+      <span>{action.label}</span>
+    </Link>
   );
 }
 
@@ -157,11 +317,13 @@ export function SideNav({
   username,
   avatarUrl,
   jobTitle,
+  counts,
 }: {
   role: AnyUserRole;
   username: string;
   avatarUrl?: string | null;
   jobTitle?: string | null;
+  counts?: NavCounts;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -187,7 +349,8 @@ export function SideNav({
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <NavList items={items} pathname={pathname} />
+        <PrimaryAction role={role} />
+        <NavList items={items} pathname={pathname} counts={counts} />
       </div>
 
       <div className="shrink-0 border-t border-white/8 p-3">
@@ -222,10 +385,12 @@ export function MobileSideNav({
   role,
   open,
   onClose,
+  counts,
 }: {
   role: AnyUserRole;
   open: boolean;
   onClose: () => void;
+  counts?: NavCounts;
 }) {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -244,7 +409,8 @@ export function MobileSideNav({
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-4">
-          <NavList items={items} pathname={pathname} onNavigate={onClose} />
+          <PrimaryAction role={role} onNavigate={onClose} />
+          <NavList items={items} pathname={pathname} counts={counts} onNavigate={onClose} />
         </div>
       </aside>
     </div>
