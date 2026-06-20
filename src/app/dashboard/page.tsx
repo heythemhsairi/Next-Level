@@ -1,6 +1,8 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { OverviewClient } from "./overview-client";
+import { AdminHome } from "@/components/home/admin-home";
+import { getMomentum, type Momentum } from "@/lib/momentum";
 import { getDonutPalette } from "@/components/charts/palette";
 import { type StaleDevisRow } from "@/components/stale-devis-banner";
 import { PriorityPinsSection } from "./priorities-section";
@@ -550,6 +552,24 @@ export default async function DashboardPage() {
     "featured",
   );
 
+  // ---- Momentum (real-data motivation; role-gated inside the helper) ----
+  const momentum: Momentum = await safe(
+    () => getMomentum(session.role, session.id),
+    {
+      deliveredThisWeek: 0,
+      deliveredLastWeek: 0,
+      deliveryStreak: 0,
+      tasksShippedThisWeek: 0,
+      leadsWon: 0,
+      winRate: null,
+      devisAcceptStreak: 0,
+      collectedThisMonth: 0,
+      collectedLastMonth: 0,
+      teamEnergy: [],
+    },
+    "momentum",
+  );
+
   // Build the action-center tiles (only nonzero ones render).
   const actionItems: ActionItem[] = [
     {
@@ -614,31 +634,52 @@ export default async function DashboardPage() {
           }))}
         />
       )}
-      <OverviewClient
-        role={session.role}
-        fullName={session.full_name ?? session.username}
-        counts={{
-          activeProjects,
-          activeTasks: isAdmin ? totalActiveTasks : myActiveTasks,
-          teamSize,
-          clients: clientsCount,
-          myActiveTasks,
-          myOverdueTasks,
-        }}
-        revenue={{
-          mtdInvoiced,
-          mtdPaid,
-          outstanding: totalOutstanding,
-          invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
-          paidTrend: pctTrend(mtdPaid, prevPaid),
-          outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
-        }}
-        monthlySeries={monthlySeries}
-        donutData={donutData}
-        recentDevis={recentDevis}
-        upcomingTasks={upcomingTasks}
-        featuredEmployee={featuredEmployee}
-      />
+
+      {isAdmin ? (
+        <AdminHome
+          firstName={(session.full_name ?? session.username).split(" ")[0]}
+          revenue={{
+            mtdInvoiced,
+            mtdPaid,
+            outstanding: totalOutstanding,
+            invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
+            paidTrend: pctTrend(mtdPaid, prevPaid),
+            outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
+          }}
+          momentum={momentum}
+          monthlySeries={monthlySeries}
+          donutData={donutData}
+          recentDevis={recentDevis}
+          upcomingTasks={upcomingTasks}
+          featuredEmployee={featuredEmployee}
+        />
+      ) : (
+        <OverviewClient
+          role={session.role}
+          fullName={session.full_name ?? session.username}
+          counts={{
+            activeProjects,
+            activeTasks: myActiveTasks,
+            teamSize,
+            clients: clientsCount,
+            myActiveTasks,
+            myOverdueTasks,
+          }}
+          revenue={{
+            mtdInvoiced,
+            mtdPaid,
+            outstanding: totalOutstanding,
+            invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
+            paidTrend: pctTrend(mtdPaid, prevPaid),
+            outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
+          }}
+          monthlySeries={monthlySeries}
+          donutData={donutData}
+          recentDevis={recentDevis}
+          upcomingTasks={upcomingTasks}
+          featuredEmployee={featuredEmployee}
+        />
+      )}
     </div>
   );
 }

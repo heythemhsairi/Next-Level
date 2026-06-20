@@ -84,3 +84,9 @@ export function formatMonth(
   const monthName = months[(m ?? 1) - 1] ?? "";
   return `${monthName} ${y}`;
 }
+
+/** Percent trend helper shared by the home command centers. */
+export function pctTrend(current: number, prev: number): number | null {
+  if (prev === 0) return current > 0 ? 100 : null;
+  return ((current - prev) / prev) * 100;
+}
