@@ -20,3 +20,16 @@ export function formatDate(iso: string | null): string {
     day: "numeric",
   });
 }
+
+/**
+ * Monday-based start of the week for `ref` (default: now), at 00:00 local.
+ * Used by the momentum layer for "this week" counts.
+ */
+export function startOfWeek(ref: Date = new Date()): Date {
+  const d = new Date(ref);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const diff = (day + 6) % 7; // days since Monday
+  d.setDate(d.getDate() - diff);
+  return d;
+}
