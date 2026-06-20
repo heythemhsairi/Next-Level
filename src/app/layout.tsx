@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Cairo } from "next/font/google";
+import { Inter, Cairo, Sora } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { ToastProvider } from "@/components/toast";
 
-// Next Level type system: Inter for Latin/UI, Cairo for Arabic.
+// Cinematic Red type system:
+//   Sora  — display / headings (Latin)
+//   Inter — body / UI (Latin)
+//   Cairo — Arabic headings + body
+const sora = Sora({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-sora",
+  display: "swap",
+});
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -36,7 +46,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${cairo.variable}`}
+      className={`dark ${sora.variable} ${inter.variable} ${cairo.variable}`}
     >
       <body>
         <I18nProvider>
