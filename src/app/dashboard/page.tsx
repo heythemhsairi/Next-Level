@@ -1,8 +1,8 @@
 import { requireSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { OverviewClient } from "./overview-client";
 import { AdminHome } from "@/components/home/admin-home";
 import { SalesHome } from "@/components/home/sales-home";
+import { EditorHome } from "@/components/home/editor-home";
 import { getMomentum, type Momentum } from "@/lib/momentum";
 import { getDonutPalette } from "@/components/charts/palette";
 import { type StaleDevisRow } from "@/components/stale-devis-banner";
@@ -743,9 +743,8 @@ export default async function DashboardPage() {
           featuredEmployee={featuredEmployee}
         />
       ) : (
-        <OverviewClient
-          role={session.role}
-          fullName={session.full_name ?? session.username}
+        <EditorHome
+          firstName={(session.full_name ?? session.username).split(" ")[0]}
           counts={{
             activeProjects,
             activeTasks: myActiveTasks,
@@ -754,19 +753,8 @@ export default async function DashboardPage() {
             myActiveTasks,
             myOverdueTasks,
           }}
-          revenue={{
-            mtdInvoiced,
-            mtdPaid,
-            outstanding: totalOutstanding,
-            invoicedTrend: pctTrend(mtdInvoiced, prevInvoiced),
-            paidTrend: pctTrend(mtdPaid, prevPaid),
-            outstandingTrend: pctTrend(totalOutstanding, outstandingPrev),
-          }}
-          monthlySeries={monthlySeries}
-          donutData={donutData}
-          recentDevis={recentDevis}
-          upcomingTasks={upcomingTasks}
-          featuredEmployee={featuredEmployee}
+          momentum={momentum}
+          myTasks={upcomingTasks}
         />
       )}
     </div>
