@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
+/**
+ * Race a promise against a timeout. If Supabase is slow/unreachable (e.g. a
+ * paused free-tier project), the middleware would otherwise hang until Vercel
+ * kills it with MIDDLEWARE_INVOCATION_TIMEOUT (a hard 504). Instead we bail
+ * fast and let the caller degrade gracefully.
+ */
+function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -36,10 +49,6 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith("/login");
   const isDashboard = path.startsWith("/dashboard");
@@ -48,6 +57,21 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/_next") ||
     path.startsWith("/favicon") ||
     path === "/";
+
+  // Auth check, guarded by a timeout so a slow/paused Supabase can't hang the
+  // whole request into a 504. `null` = we couldn't determine the user in time.
+  const authResult = await withTimeout(supabase.auth.getUser(), 5000);
+
+  // If Supabase didn't answer in time, fail safe: let auth routes / public
+  // assets through (so /login still renders) and bounce everything else there.
+  if (authResult === null) {
+    if (isAuthRoute || isPublicAsset) return supabaseResponse;
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  const user = authResult.data.user;
 
   // Not logged in → only auth route / public assets allowed.
   if (!user && !isAuthRoute && !isPublicAsset) {
@@ -58,11 +82,13 @@ export async function updateSession(request: NextRequest) {
 
   // Logged in: figure out which side of the app this user belongs to.
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const profileResult = await withTimeout(
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
+      5000,
+    );
+    // If the role lookup times out, let the request proceed rather than 504;
+    // the page-level guards (requireStaff/requireClient) still enforce access.
+    const profile = profileResult?.data ?? null;
     const isClient = profile?.role === "client";
     const home = isClient ? "/portal" : "/dashboard";
 
