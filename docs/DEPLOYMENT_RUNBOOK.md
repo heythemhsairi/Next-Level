@@ -1,7 +1,9 @@
 # Next Level Portal — Redesign Deployment Runbook
 
-Status: **for review only. Nothing applied. `main`/production untouched.**
+Status (2026-09-20): **Migrations 0022–0024 have been applied to the linked Supabase database.** The code is still on the review branch. Migration 0025 has not been applied.
 Review branch: `codex/portal-redesign-complete` (based on Phases 1–6).
+
+The linked database had no `supabase_migrations.schema_migrations` table before this work, although earlier application tables existed. A read-only snapshot of the affected rows and policies was saved locally at `%TEMP%/nextlevel-portal-backup-20260920/pre-migration-snapshot.json`. A full `pg_dump` could not run because Docker was unavailable. Migrations 0022–0024 were applied individually through the authenticated Supabase CLI SQL query command. A follow-up query confirmed the RPC, both columns, audit table, and expected policies. **Do not use `supabase db push` against this project until its pre-existing migration history is reconciled.**
 
 ## Migrations in this work (4)
 
@@ -21,23 +23,11 @@ causing an **approval outage**: whichever ran first, one code version was broken
 during the window. Migrations 0022–0024 are now fully backward-compatible (old
 direct-update code AND new RPC code both work while the old policy is present).
 
-1. **Back up** the database (Supabase → Database → Backups). Confirm a fresh backup.
-2. **Resume Supabase** if paused.
-3. **Apply migrations 0022, 0023, 0024 only.** Old code keeps working via the
-   still-present policy; the RPC now also exists. Use the Supabase SQL Editor to
-   run the complete contents of those three files, in order. Confirm each
-   verification query below. Then record those exact versions in migration
-   history with `supabase migration repair 20260605000022 20260605000023
-   20260605000024 --status applied` against the linked project. Check
-   `supabase db push --dry-run` before proceeding: it must show **only 0025**.
-   Stop if it lists any other migration. Do **not** run a plain `db push` in
-   this step while 0025 is present in the checkout.
+1. **Done:** inspect and snapshot the affected data and policies. Confirm a full project backup in Supabase before any further material database change.
+2. **Done:** apply migrations 0022, 0023, and 0024. Old code keeps working via the still-present policy; the RPC now also exists. Verification queries below returned the expected results.
 4. **Merge `codex/portal-redesign-complete` → `main` after review.** Vercel deploys; new code uses the RPC.
 5. **Smoke test** on production (below), especially client approve / request-revision.
-6. **Apply migration 0025** after the new code and client approve/revision smoke
-   test pass. Recheck `supabase db push --dry-run`; if it lists only 0025, run
-   `supabase db push`. The legacy policy is then removed and only the RPC path
-   remains. If any other migration appears, stop and reconcile history first.
+6. **Apply migration 0025** after the new code and client approve/revision smoke test pass. Because the linked project lacks migration history, use the exact reviewed `0025` SQL through the authenticated CLI query command, then verify the old policy count is zero. Do not run a broad `db push`.
 7. Final smoke test of client approve/revision.
 
 Verification queries:

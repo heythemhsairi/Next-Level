@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -39,6 +40,24 @@ async function logAudit(
 }
 
 const AUDIT_WARNING = "The account changed, but its audit entry was not saved. Contact an administrator.";
+
+async function recoveryLink(tokenHash: string): Promise<string> {
+  let origin: string;
+  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origin = `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  } else if (process.env.VERCEL_URL) {
+    origin = `https://${process.env.VERCEL_URL}`;
+  } else {
+    const host = (await headers()).get("host") ?? "";
+    origin = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)
+      ? `http://localhost${host.includes(":") ? host.slice(host.indexOf(":")) : ""}`
+      : "https://nextlevelportal.vercel.app";
+  }
+  const url = new URL("/auth/confirm", origin);
+  url.searchParams.set("token_hash", tokenHash);
+  url.searchParams.set("type", "recovery");
+  return url.toString();
+}
 
 /** Invite a NEW client-portal login: creates the user, links it to a client,
  *  and returns a set-password link the admin shares — no plaintext password. */
@@ -104,7 +123,8 @@ export async function inviteClientAccountAction(
     type: "recovery",
     email,
   });
-  const link = linkData?.properties?.action_link;
+  const tokenHash = linkData?.properties?.hashed_token;
+  const link = tokenHash ? await recoveryLink(tokenHash) : undefined;
 
   const auditOk = await logAudit(admin, session.id, created.user.id, "invite", {
     email,
@@ -142,9 +162,10 @@ export async function resetAccessAction(
   if (error) return { ok: false, error: error.message };
 
   const auditOk = await logAudit(admin, session.id, userId, "reset", { email });
+  const tokenHash = data?.properties?.hashed_token;
   return {
     ok: true,
-    link: data?.properties?.action_link,
+    link: tokenHash ? await recoveryLink(tokenHash) : undefined,
     message: "Share this link so they can set a new password.",
     warning: auditOk ? undefined : AUDIT_WARNING,
   };

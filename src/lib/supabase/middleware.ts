@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith("/login");
+  const isRecoveryRoute = path.startsWith("/auth/");
   const isDashboard = path.startsWith("/dashboard");
   const isPortal = path.startsWith("/portal");
   const isPublicAsset =
@@ -66,7 +67,7 @@ export async function updateSession(request: NextRequest) {
   // If Supabase didn't answer in time, fail safe: let auth routes / public
   // assets through (so /login still renders) and bounce everything else there.
   if (authResult === null) {
-    if (isAuthRoute || isPublicAsset) return supabaseResponse;
+    if (isAuthRoute || isRecoveryRoute || isPublicAsset) return supabaseResponse;
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -75,7 +76,7 @@ export async function updateSession(request: NextRequest) {
   const user = authResult.data.user;
 
   // Not logged in → only auth route / public assets allowed.
-  if (!user && !isAuthRoute && !isPublicAsset) {
+  if (!user && !isAuthRoute && !isRecoveryRoute && !isPublicAsset) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
