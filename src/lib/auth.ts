@@ -21,23 +21,21 @@ export async function requireSession(): Promise<SessionProfile> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, username, full_name, role, avatar_url, job_title, client_id")
     .eq("id", user.id)
     .single();
 
-  if (!profile) {
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      username: user.email?.split("@")[0] ?? "user",
-      full_name: null,
-      role: "editor",
-      avatar_url: null,
-      job_title: null,
-      client_id: null,
-    };
+  // Fail closed. An authenticated user whose profile can't be resolved — a
+  // missing/orphaned row, a deleted account, or a transient lookup error —
+  // must NOT be granted a role. This previously fell back to `editor`, i.e.
+  // silent staff access (a privilege escalation). Deny instead: sign the
+  // stale session out and bounce to /login. The middleware guard below keeps
+  // this from looping straight back into a protected route.
+  if (error || !profile) {
+    await supabase.auth.signOut();
+    redirect("/login");
   }
 
   return {

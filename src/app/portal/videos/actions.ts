@@ -39,10 +39,12 @@ export async function approveDeliverableAction(
   if (!owned.ok) return owned;
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("deliverables")
-    .update({ status: "approved" })
-    .eq("id", id);
+  // Go through the locked-down RPC (validates role, ownership, and the exact
+  // allowed transition) instead of a raw column-unrestricted update.
+  const { error } = await supabase.rpc("client_set_deliverable_status", {
+    p_deliverable_id: id,
+    p_status: "approved",
+  });
   if (error) return { ok: false, error: error.message };
 
   await notify(
@@ -78,10 +80,10 @@ export async function requestRevisionAction(
     .insert({ deliverable_id: id, author_id: session.id, body: note });
   if (fbError) return { ok: false, error: fbError.message };
 
-  const { error } = await supabase
-    .from("deliverables")
-    .update({ status: "revision_requested" })
-    .eq("id", id);
+  const { error } = await supabase.rpc("client_set_deliverable_status", {
+    p_deliverable_id: id,
+    p_status: "revision_requested",
+  });
   if (error) return { ok: false, error: error.message };
 
   await notify(
