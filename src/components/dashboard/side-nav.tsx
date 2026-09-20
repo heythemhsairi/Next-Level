@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn, type AnyUserRole } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand-logo";
@@ -395,24 +396,63 @@ export function MobileSideNav({
   const { t } = useI18n();
   const pathname = usePathname();
   const items = buildNav(t).filter((i) => i.rolesAllowed.includes(role));
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <aside className="absolute inset-y-0 left-0 flex w-[260px] flex-col border-r border-white/8 bg-ink/95 backdrop-blur-2xl">
+  const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // Portals need a client-side mount before document.body exists.
+  useEffect(() => setMounted(true), []);
+
+  // While open: close on Escape, lock body scroll, and move focus into the
+  // drawer for keyboard/screen-reader users. Everything is restored on close.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  if (!mounted || !open) return null;
+
+  // Rendered in a portal on <body> — NOT inside the backdrop-blurred header,
+  // whose backdrop-filter would otherwise clip this fixed layer to ~64px.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] lg:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+    >
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        className="absolute inset-y-0 left-0 flex w-[84%] max-w-[300px] flex-col border-r border-white/8 bg-ink/95 shadow-2xl outline-none"
+      >
         <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-white/8 px-5">
           <BrandLogo width={120} />
-          <button onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-ink/60 hover:bg-white/[0.06]">
+          <button onClick={onClose} aria-label="Close menu" className="rounded-lg p-1.5 text-ink/60 hover:bg-white/[0.06]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M6 6l12 12M6 18L18 6" />
             </svg>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
           <PrimaryAction role={role} onNavigate={onClose} />
           <NavList items={items} pathname={pathname} counts={counts} onNavigate={onClose} />
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }
