@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -200,6 +201,12 @@ export default async function FinancePage() {
     (s, r) => s + r.outstanding_dt,
     0,
   );
+  const kpis = [
+    { label: "Collected (month)", value: mtdPaid, trend: pctTrend(mtdPaid, prevPaid), tone: "green" as const },
+    { label: "Invoiced (month)", value: mtdInvoiced, trend: pctTrend(mtdInvoiced, prevInvoiced), tone: "brand" as const },
+    { label: "Collected (quarter)", value: qtdPaid, tone: "ink" as const },
+    { label: "Outstanding", value: totalOutstanding, tone: "amber" as const },
+  ].filter((kpi) => kpi.value > 0);
 
   return (
     <div className="space-y-7">
@@ -208,30 +215,19 @@ export default async function FinancePage() {
         subtitle="Cash flow, services, outstanding"
       />
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiTile
-          label="Collected (month)"
-          value={mtdPaid}
-          trend={pctTrend(mtdPaid, prevPaid)}
-          tone="green"
-        />
-        <KpiTile
-          label="Invoiced (month)"
-          value={mtdInvoiced}
-          trend={pctTrend(mtdInvoiced, prevInvoiced)}
-          tone="brand"
-        />
-        <KpiTile
-          label="Collected (quarter)"
-          value={qtdPaid}
-          tone="ink"
-        />
-        <KpiTile
-          label="Outstanding"
-          value={totalOutstanding}
-          tone={totalOutstanding > 0 ? "amber" : "neutral"}
-        />
-      </section>
+      {kpis.length > 0 ? (
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {kpis.map((kpi) => <KpiTile key={kpi.label} {...kpi} />)}
+        </section>
+      ) : (
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-ink-2 p-5 sm:p-6">
+          <div>
+            <h2 className="font-semibold text-white">No cash activity this period</h2>
+            <p className="mt-1 text-sm text-white/55">Collections and invoices will appear here as they are recorded.</p>
+          </div>
+          <Link href="/dashboard/devis" className="text-sm font-semibold text-brand-light hover:text-white">View quotes →</Link>
+        </section>
+      )}
 
       <Card>
         <CardHeader>
