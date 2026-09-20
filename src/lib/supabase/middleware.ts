@@ -56,6 +56,7 @@ export async function updateSession(request: NextRequest) {
   const isPublicAsset =
     path.startsWith("/_next") ||
     path.startsWith("/favicon") ||
+    path.startsWith("/api/health") ||
     path === "/";
 
   // Auth check, guarded by a timeout so a slow/paused Supabase can't hang the
