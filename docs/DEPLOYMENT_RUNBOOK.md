@@ -1,11 +1,10 @@
 # Next Level Portal — Redesign Deployment Runbook
 
-Status (2026-09-20): **Migrations 0022–0024 have been applied to the linked Supabase database.** The code is still on the review branch. Migration 0025 has not been applied.
-Review branch: `codex/portal-redesign-complete` (based on Phases 1–6).
+Status (2026-09-20): **The redesign is deployed to production.** PR #1 was merged as `3accd8f9`; Vercel deployment `dpl_GWNbNKXpyzfWFyYSHzWzMsxFty89` is Ready and assigned to `nextlevelportal.vercel.app`. Migrations 0022–0025 and the follow-up anonymous EXECUTE revocation were applied and verified.
 
 The linked database had no `supabase_migrations.schema_migrations` table before this work, although earlier application tables existed. A read-only snapshot of the affected rows and policies was saved locally at `%TEMP%/nextlevel-portal-backup-20260920/pre-migration-snapshot.json`. A full `pg_dump` could not run because Docker was unavailable. Migrations 0022–0024 were applied individually through the authenticated Supabase CLI SQL query command. A follow-up query confirmed the RPC, both columns, audit table, and expected policies. **Do not use `supabase db push` against this project until its pre-existing migration history is reconciled.**
 
-## Migrations in this work (4)
+## Migrations in this work (5)
 
 | File | What it does | When to apply |
 | --- | --- | --- |
@@ -13,6 +12,7 @@ The linked database had no `supabase_migrations.schema_migrations` table before 
 | `..0023_portal_accounts.sql` | `profiles.status` + `account_audit_events` (admin-only RLS). Additive. | Step 1 (before deploy) |
 | `..0024_social_posts_client_calendar.sql` | `social_posts.client_visible` + client SELECT policy. Additive. | Step 1 (before deploy) |
 | `..0025_drop_legacy_deliverable_update.sql` | Drops the insecure `deliverables_client_update` policy. | Step 3 (**after** code is live) |
+| `20260920103518_revoke_anon_deliverable_rpc.sql` | Removes Supabase's direct anonymous EXECUTE grant on the approval RPC. | Applied after security-advisor review |
 
 All are idempotent.
 
@@ -23,12 +23,13 @@ causing an **approval outage**: whichever ran first, one code version was broken
 during the window. Migrations 0022–0024 are now fully backward-compatible (old
 direct-update code AND new RPC code both work while the old policy is present).
 
-1. **Done:** inspect and snapshot the affected data and policies. Confirm a full project backup in Supabase before any further material database change.
-2. **Done:** apply migrations 0022, 0023, and 0024. Old code keeps working via the still-present policy; the RPC now also exists. Verification queries below returned the expected results.
-4. **Merge `codex/portal-redesign-complete` → `main` after review.** Vercel deploys; new code uses the RPC.
-5. **Smoke test** on production (below), especially client approve / request-revision.
-6. **Apply migration 0025** after the new code and client approve/revision smoke test pass. Because the linked project lacks migration history, use the exact reviewed `0025` SQL through the authenticated CLI query command, then verify the old policy count is zero. Do not run a broad `db push`.
-7. Final smoke test of client approve/revision.
+1. **Done:** inspect and snapshot affected rows and policies. A full `pg_dump` could not run without Docker; no full backup was confirmed in this session.
+2. **Done:** apply migrations 0022–0024. Old code kept working via the still-present policy.
+3. **Done:** merge PR #1 and confirm the production Vercel deployment is Ready.
+4. **Done:** sign in as admin on production and verify Accounts lists four real logins with actions and audit entries. Generate a client set-password link on the production domain. The client recovery form and content calendar were exercised locally against the same Supabase project without changing the client's password.
+5. **Done:** apply 0025 after the new code was live. No deliverable was `in_review`, so a real approval could not be smoke-tested without changing production data. The prior seeded database suite recorded 16/16 passing cases for RPC authorization and transitions.
+6. **Done:** revoke anonymous EXECUTE on the RPC after the Supabase security advisor found a direct grant. Verify `anon_can_execute=false`, `auth_can_execute=true`, and old broad policy count `0`.
+7. **Outstanding:** use a dedicated test client and an `in_review` test deliverable to validate approve/revision end to end; reconcile the project's missing migration history before any future `db push`.
 
 Verification queries:
 ```sql
@@ -37,14 +38,12 @@ select 1 from information_schema.columns where table_name='profiles' and column_
 select 1 from information_schema.columns where table_name='social_posts' and column_name='client_visible';
 -- after step 6:
 select count(*) from pg_policies where tablename='deliverables' and policyname='deliverables_client_update'; -- 0
+select has_function_privilege('anon', 'public.client_set_deliverable_status(uuid,text)', 'EXECUTE'); -- false
 ```
 
 ## Rollback — never restores the insecure policy
 
-- **Before step 6 (0025 not run):** promote the previous Vercel deployment. The
-  old policy is still present, so previous code works. Leave 0022–0024 (additive,
-  harmless). Do **not** recreate any policy.
-- **After step 6 (0025 has run):** the secure RPC is the only client-write path.
+- **Current state:** the secure RPC is the only client-write path.
   Do **NOT** roll back to a build that expects the old policy, and do **NOT**
   recreate `deliverables_client_update` (that is the vulnerability). If a revert
   is unavoidable, ship a hotfix that keeps calling the RPC (or at most a narrowly
