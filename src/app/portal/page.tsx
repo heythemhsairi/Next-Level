@@ -78,9 +78,24 @@ export default async function PortalHome() {
   const deliveryPct =
     totalVideos > 0 ? Math.round((deliveredCount / totalVideos) * 100) : 0;
   const recentVideos = allVideos.slice(0, 5);
+  const pendingApproval = allVideos.filter((v) => v.status === "in_review");
   const firstName = (client?.name ?? session.full_name ?? session.username).split(
     " ",
   )[0];
+
+  // This month's client-visible content (links to the content calendar).
+  const { data: contentPosts } = await supabase
+    .from("social_posts")
+    .select("id, scheduled_at")
+    .eq("client_visible", true);
+  const nowD = new Date();
+  const contentThisMonth = (contentPosts ?? []).filter((p) => {
+    if (!p.scheduled_at) return false;
+    const d = new Date(p.scheduled_at);
+    return (
+      d.getFullYear() === nowD.getFullYear() && d.getMonth() === nowD.getMonth()
+    );
+  }).length;
 
   // Per-project progress: delivered videos vs total videos shared on it.
   const progressByProject = new Map<string, { delivered: number; total: number }>();
@@ -152,7 +167,29 @@ export default async function PortalHome() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* What needs you today — client-facing approvals queue. */}
+      {pendingApproval.length > 0 && (
+        <section className="reveal flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/[0.07] p-4 sm:p-5">
+          <div>
+            <p className="text-sm font-semibold text-cream">
+              {pendingApproval.length}{" "}
+              {pendingApproval.length === 1 ? "video needs" : "videos need"} your
+              review
+            </p>
+            <p className="text-xs text-cream/60">
+              Approve or request changes so your team can keep moving.
+            </p>
+          </div>
+          <Link
+            href="/portal/videos"
+            className="shrink-0 rounded-lg bg-[linear-gradient(135deg,#FF2A2A,#B00C12)] px-4 py-2 text-sm font-semibold text-white shadow-brand-glow"
+          >
+            Review now
+          </Link>
+        </section>
+      )}
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Videos delivered" value={String(deliveredCount)} />
         <Stat
           label="Outstanding balance"
@@ -160,6 +197,24 @@ export default async function PortalHome() {
           tone={outstanding > 0 ? "alert" : "ok"}
         />
         <Stat label="Active tasks" value={String(activeTasks)} />
+        <Link href="/portal/calendar" className="block">
+          <Card interactive>
+            <CardContent className="flex h-full items-center justify-between p-5">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/45">
+                  Content this month
+                </p>
+                <p className="mt-1.5 text-2xl font-display font-extrabold tracking-tight text-ink">
+                  {contentThisMonth}{" "}
+                  <span className="text-sm font-medium text-ink/50">planned</span>
+                </p>
+              </div>
+              <span className="shrink-0 text-xs font-semibold text-brand">
+                Calendar →
+              </span>
+            </CardContent>
+          </Card>
+        </Link>
       </section>
 
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">
