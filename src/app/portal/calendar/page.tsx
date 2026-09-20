@@ -10,13 +10,24 @@ export default async function PortalCalendarPage() {
 
   // RLS (social_posts_client_select) restricts this to client-visible posts on
   // projects owned by the signed-in client; the explicit filter is belt-and-braces.
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("social_posts")
     .select(
       "id, title, content, platforms, status, scheduled_at, projects:project_id(name)",
     )
     .eq("client_visible", true)
     .order("scheduled_at", { ascending: true });
+
+  if (error?.code === "42703") {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-ink-2 p-6 sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-light">Content</p>
+        <h1 className="mt-3 text-2xl font-display font-bold text-white">Your calendar is being prepared</h1>
+        <p className="mt-2 text-sm text-white/60">Your studio will make your content plan available here soon.</p>
+      </section>
+    );
+  }
+  if (error) throw new Error("Content calendar could not be loaded.");
 
   const posts: CalendarPost[] = (data ?? []).map((p) => {
     const proj = Array.isArray(p.projects) ? p.projects[0] : p.projects;

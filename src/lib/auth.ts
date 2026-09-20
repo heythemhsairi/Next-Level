@@ -21,11 +21,28 @@ export async function requireSession(): Promise<SessionProfile> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile, error } = await supabase
+  let { data: profile, error } = await supabase
     .from("profiles")
     .select("id, username, full_name, role, avatar_url, job_title, client_id, status")
     .eq("id", user.id)
     .single();
+
+  // Preview builds may be reviewed before the additive accounts migration is
+  // applied to the shared database. Keep production fail-closed, while allowing
+  // pre-migration visual QA in development/preview only. Suspended users remain
+  // blocked by the auth-layer ban in both environments.
+  if (
+    error?.code === "42703" &&
+    (process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview")
+  ) {
+    const legacy = await supabase
+      .from("profiles")
+      .select("id, username, full_name, role, avatar_url, job_title, client_id")
+      .eq("id", user.id)
+      .single();
+    profile = legacy.data as typeof profile;
+    error = legacy.error;
+  }
 
   // Fail closed. An authenticated user whose profile can't be resolved — a
   // missing/orphaned row, a deleted account, or a transient lookup error —

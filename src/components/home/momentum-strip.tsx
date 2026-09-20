@@ -27,12 +27,14 @@ export type MomentumTile = {
  * encourage, never shame.
  */
 export function MomentumStrip({ tiles }: { tiles: MomentumTile[] }) {
+  const usefulTiles = tiles.filter((tile) => (tile.value ?? 0) > 0);
+  if (usefulTiles.length === 0) return null;
   return (
-    <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {tiles.map((tile, i) => {
+    <section className="flex flex-wrap gap-3">
+      {usefulTiles.map((tile, i) => {
         const isEmpty = (tile.value ?? 0) === 0 && !tile.spark;
         return (
-          <Card key={i} interactive className="relative overflow-hidden">
+          <Card key={i} interactive className="relative min-w-[200px] flex-1 overflow-hidden">
             <div className="flex h-full flex-col p-5">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/55">

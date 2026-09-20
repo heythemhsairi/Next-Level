@@ -106,12 +106,14 @@ export function ContentCalendar({ posts }: { posts: CalendarPost[] }) {
 
   const publishedCount = monthPosts.filter((p) => p.status === "published").length;
 
-  // Build the 6-row grid starting Monday.
+  // Use only the weeks needed for this month, starting Monday.
   const cells = useMemo(() => {
     const first = new Date(cursor.year, cursor.month, 1);
     const startOffset = (first.getDay() + 6) % 7; // Mon=0
+    const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+    const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
     const start = new Date(cursor.year, cursor.month, 1 - startOffset);
-    return Array.from({ length: 42 }, (_, i) => {
+    return Array.from({ length: cellCount }, (_, i) => {
       const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
       return d;
     });

@@ -1,76 +1,29 @@
-# Phase 6 — QA Report
+# Next Level Portal — redesign QA report
 
-Branch: `redesign/phase-6-hardening` · typecheck: clean · Vercel build: Ready.
+Branch: `codex/portal-redesign-complete`, based on `redesign/phase-6-hardening`.
+Production has not been changed.
 
-## 1. Automated security tests (real, runnable)
+## Verified in this continuation
 
-A local Postgres harness applies the actual migration files (0022–0025) to a
-seeded multi-role dataset (admin, staff/editor, client A, client B) and asserts
-behaviour. **16/16 passed.** Full output: `supabase/tests/rls_test_results.txt`.
-Re-run with `supabase/tests/run_tests.sh`.
+- `npm run typecheck` and `npm run build` passed on the worktree.
+- Signed into the local app with an existing admin account against the configured Supabase project. The dashboard, client list, and account setup state rendered. No production record was created or changed during this UI review.
+- At 390px, visually reviewed the dashboard and client cards. The mobile navigation drawer opened and closed with Escape. A read-only route sweep covered 18 staff routes; measured document width did not exceed viewport width.
+- At 1440px and 2560px, the dashboard, clients, and accounts routes did not overflow horizontally.
+- The shared preview database does not yet have `profiles.status` or `social_posts.client_visible`. The auth guard now permits a legacy-profile lookup **only in development or Vercel preview** so existing accounts can be used for visual review. Production remains fail-closed. Accounts and social content routes show an honest setup state instead of a false empty list until migrations are applied.
+- Dashboard: removed the duplicate overdue summary; hid empty momentum tiles; made the welcome and sidebar calmer; ensured animated counts show their real value in background tabs. Client list now has mobile cards. Portal home and navigation were made more compact, and the content calendar uses only the weeks needed for a month. Added portal loading and error states.
+- Account actions: auth ban/unban failures check and attempt profile rollback; email edit updates auth email and attempts rollback if profile edit fails; audit failures are surfaced to the admin. Account data query errors are no longer presented as zero accounts.
 
-Covered:
-- **Cross-client isolation:** client A sees only its own client-visible posts;
-  cannot see client B's posts or hidden posts; client B symmetric; staff see all.
-- **Deliverable status RPC:** valid `in_review`→`approved` applies; invalid status
-  value rejected; from-state guard rejects a non-`in_review` row; a `delivered`
-  row is left unchanged; a cross-client RPC call is rejected.
-- **Insecure policy removed:** `deliverables_client_update` is gone after 0025,
-  and a raw client `UPDATE` (title/client_visible) no longer mutates the row.
-- **Audit records:** admin can read `account_audit_events`; client and staff
-  cannot (admin-only RLS); an inserted audit row is readable by admin.
-- **Schema:** `profiles.status` present.
+## Existing security test evidence
 
-This is the **client-role test result** at the security layer.
+The prior Phase 6 commit includes a seeded Postgres harness and its recorded **16/16 passing** result in `supabase/tests/rls_test_results.txt`. It covers client isolation, deliverable status RPC guards, removal of the broad client update policy, and admin-only account audit reads. This continuation did **not** rerun the SQL harness because `psql`/Postgres and Docker are not available on this machine.
 
-## 2. What was NOT tested live, and why (honest limits)
+## Still unverified
 
-- **Rendered UI screenshots (desktop/mobile)** and full end-to-end login as each
-  role require the running app against a real Supabase (GoTrue auth) with seeded
-  credentials. This environment has a local Postgres (used above) but no auth
-  server and no test credentials, and preview URLs sit behind Vercel's preview
-  protection for automated tools. These were not faked.
-  - To produce them: resume Supabase, then either you open the preview (you pass
-    Vercel auth) or grant a short browser session with a client test login and I
-    capture dashboard/portal/calendar at desktop + 390px.
-- **Suspended-account denial** is enforced in `src/lib/auth.ts` (app layer), not
-  RLS, so it is covered in the manual smoke test rather than the SQL suite.
+- Client-role rendered flows, including the content calendar, require a client test login and migrations 0022–0024. We did not create a test account or change the shared database.
+- Account invite, email edit, suspend/reactivate, and audit writes require migration 0023 and safe test accounts. Code was typechecked but these mutations were not exercised against production.
+- The full screen-by-screen redesign of every staff detail/form page is outside this branch's visual changes. The read-only route sweep checks navigation and horizontal overflow; it does not prove all form flows or empty states.
+- The desktop browser checks measured layout widths, but saved screenshot artifacts were not produced. Local browser screenshots were visually inspected at 390px.
 
-## 3. Account-action hardening (this phase)
+## Release gate
 
-- Suspend/reactivate now check the auth-layer ban result and **roll back the
-  `profiles.status` change** if it fails — no half-suspended accounts.
-- Invite surfaces a link-generation error in its message instead of silently
-  returning no link.
-- **Email edit implemented** (was promised, previously missing): editing a client
-  account updates its sign-in email via the admin API. Gated to client accounts
-  (staff sign in by username).
-- Audit logging is best-effort (never blocks the action); verified writable +
-  admin-only readable by the SQL suite.
-
-## 4. Phase 5 vs the requested full redesign — candid gap review
-
-Delivered (verified in code):
-- **Mobile nav drawer** fixed (portal render, full-viewport, Escape/scroll-lock/focus).
-- **Client portal home:** approvals queue, content-this-month card into the calendar, responsive stat grid.
-- **Content calendar** (Phase 4): real client-scoped month grid + mobile agenda.
-- **Hero** tamed across role homes.
-
-Partial / not done (needs a rendered-screenshot loop to change safely):
-- **Staff dashboard home** — duplicate overdue-alert dedupe and zero-KPI cleanup **not done** (only the hero was tamed).
-- **Staff sidebar (20+ items)** simplification — **not done**.
-- **Mobile client table → cards** on `/dashboard/clients` — **not done**.
-- **Portal nav** richer mobile treatment — **not done** (still a tab strip, now with a Content tab).
-- **Per-screen empty/loading/error pass** across all ~20 screens — **not done**.
-
-Honest assessment: Phase 5 delivered the highest-impact client-facing surfaces
-and the P0 mobile fix, but is **not** the full 20-screen redesign the audit
-describes. The remainder is visual/layout work needing rendered iteration.
-
-## 5. Verdict
-
-Security + data-isolation work is **verified and safe to ship** via the
-zero-outage runbook. The visual redesign is **partially** complete and should not
-be described as finished. Recommend shipping Phases 1–4 + the Phase 5 portal
-changes behind the runbook, and scheduling the remaining staff-dashboard redesign
-as a follow-up with a screenshot review loop.
+Keep this branch in preview until the database migrations are applied in the sequence in `docs/DEPLOYMENT_RUNBOOK.md`, client and account flows are tested in a staging environment, and a final desktop/mobile review is accepted. Do not describe the application as fully tested or deployed based on a successful build alone.

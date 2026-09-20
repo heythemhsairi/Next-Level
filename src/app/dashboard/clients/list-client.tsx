@@ -77,6 +77,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               </svg>
               <input
                 type="search"
+                aria-label={t.filters.searchClient}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.filters.searchClient}
@@ -84,6 +85,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               />
             </div>
             <select
+              aria-label="Sort clients"
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
               className="h-9 rounded-lg border border-ink/10 bg-white/70 px-3 text-xs font-medium text-ink/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
@@ -96,6 +98,30 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
               {t.clientsUi.clients(filtered.length)}
             </span>
           </div>
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border border-white/10 bg-ink-2 px-5 py-8 text-center">
+              <p className="text-sm font-semibold text-ink">No clients match your search.</p>
+              <button type="button" onClick={() => setSearch("")} className="mt-2 text-sm text-brand-light hover:underline">Clear search</button>
+            </div>
+          )}
+          <div className="grid gap-3 lg:hidden">
+            {filtered.map((c) => (
+              <Link key={c.id} href={`/dashboard/clients/${c.id}`} className="block rounded-2xl border border-white/10 bg-ink-2 p-4 transition-colors hover:border-brand/40 hover:bg-ink-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-semibold text-ink">{c.name}</p>
+                    <p className="mt-1 truncate text-sm text-ink/60" dir="auto">{c.email ?? "No email added"}</p>
+                  </div>
+                  <span className="shrink-0 rounded-lg bg-white/[0.06] px-2.5 py-1 text-xs text-ink/75">{c.projects_count} {c.projects_count === 1 ? "project" : "projects"}</span>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3 text-xs text-ink/50">
+                  <span dir="auto">{c.phone ?? "No phone added"}</span>
+                  <span>Added {new Date(c.created_at).toLocaleDateString()}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="hidden lg:block">
           <Table>
             <THead>
               <TR>
@@ -109,7 +135,7 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
             <TBody>
               {filtered.map((c) => (
                 <TR key={c.id}>
-                  <TD className="font-medium text-slate-900">
+                  <TD className="font-medium text-ink">
                     <Link
                       href={`/dashboard/clients/${c.id}`}
                       className="hover:text-brand"
@@ -117,16 +143,17 @@ export function ClientsListClient({ clients }: { clients: ClientRow[] }) {
                       {c.name}
                     </Link>
                   </TD>
-                  <TD className="text-slate-600">{c.email ?? "—"}</TD>
-                  <TD className="text-slate-600">{c.phone ?? "—"}</TD>
-                  <TD className="text-slate-600">{c.projects_count}</TD>
-                  <TD className="text-slate-500">
+                  <TD className="text-ink/65">{c.email ?? "—"}</TD>
+                  <TD className="text-ink/65">{c.phone ?? "—"}</TD>
+                  <TD className="text-ink/65">{c.projects_count}</TD>
+                  <TD className="text-ink/50">
                     {new Date(c.created_at).toLocaleDateString()}
                   </TD>
                 </TR>
               ))}
             </TBody>
           </Table>
+          </div>
         </>
       )}
     </div>

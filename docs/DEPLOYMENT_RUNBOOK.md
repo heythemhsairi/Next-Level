@@ -1,7 +1,7 @@
 # Next Level Portal — Redesign Deployment Runbook
 
 Status: **for review only. Nothing applied. `main`/production untouched.**
-Final branch: `redesign/phase-6-hardening` (contains Phases 1–6).
+Review branch: `codex/portal-redesign-complete` (based on Phases 1–6).
 
 ## Migrations in this work (4)
 
@@ -24,11 +24,20 @@ direct-update code AND new RPC code both work while the old policy is present).
 1. **Back up** the database (Supabase → Database → Backups). Confirm a fresh backup.
 2. **Resume Supabase** if paused.
 3. **Apply migrations 0022, 0023, 0024 only.** Old code keeps working via the
-   still-present policy; the RPC now also exists. (Dashboard SQL editor in order,
-   or `supabase db push` with 0025 temporarily held back.)
-4. **Merge `redesign/phase-6-hardening` → `main`.** Vercel deploys; new code uses the RPC.
+   still-present policy; the RPC now also exists. Use the Supabase SQL Editor to
+   run the complete contents of those three files, in order. Confirm each
+   verification query below. Then record those exact versions in migration
+   history with `supabase migration repair 20260605000022 20260605000023
+   20260605000024 --status applied` against the linked project. Check
+   `supabase db push --dry-run` before proceeding: it must show **only 0025**.
+   Stop if it lists any other migration. Do **not** run a plain `db push` in
+   this step while 0025 is present in the checkout.
+4. **Merge `codex/portal-redesign-complete` → `main` after review.** Vercel deploys; new code uses the RPC.
 5. **Smoke test** on production (below), especially client approve / request-revision.
-6. **Apply migration 0025** (drops the legacy policy). Only the RPC path remains.
+6. **Apply migration 0025** after the new code and client approve/revision smoke
+   test pass. Recheck `supabase db push --dry-run`; if it lists only 0025, run
+   `supabase db push`. The legacy policy is then removed and only the RPC path
+   remains. If any other migration appears, stop and reconcile history first.
 7. Final smoke test of client approve/revision.
 
 Verification queries:

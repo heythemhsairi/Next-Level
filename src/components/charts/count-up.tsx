@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   to: number;
@@ -31,21 +31,21 @@ export function CountUp({
   locale = "fr-FR",
   className,
 }: Props) {
-  const [value, setValue] = useState(0);
-  const startedRef = useRef(false);
+  // The real value is present on first paint and in background tabs, where
+  // requestAnimationFrame may be paused indefinitely.
+  const [value, setValue] = useState(to);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
     if (
       typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      (document.visibilityState !== "visible" ||
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
     ) {
       setValue(to);
       return;
     }
 
+    setValue(0);
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {

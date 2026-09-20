@@ -11,7 +11,7 @@ export default async function SocialMediaPage({
   const supabase = await createClient();
   const { task_id: preselectedTaskId } = await searchParams;
 
-  const [{ data: postsRaw }, { data: projectsRaw }, { data: tasksRaw }] =
+  const [postsResult, projectsResult, tasksResult] =
     await Promise.all([
       supabase
         .from("social_posts")
@@ -29,6 +29,23 @@ export default async function SocialMediaPage({
         .is("parent_task_id", null)
         .order("title", { ascending: true }),
     ]);
+
+  if (postsResult.error?.code === "42703") {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-ink-2 p-6 sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-light">Social Media</p>
+        <h1 className="mt-3 text-2xl font-display font-bold text-white">Content planning is being prepared</h1>
+        <p className="mt-2 text-sm text-white/60">Finish the database setup before editing content or sharing it with clients.</p>
+      </section>
+    );
+  }
+  if (postsResult.error || projectsResult.error || tasksResult.error) {
+    throw new Error("Social media data could not be loaded.");
+  }
+
+  const postsRaw = postsResult.data;
+  const projectsRaw = projectsResult.data;
+  const tasksRaw = tasksResult.data;
 
   const posts: SocialPost[] = (postsRaw ?? []).map((p) => {
     const proj = Array.isArray(p.projects) ? p.projects[0] : p.projects;

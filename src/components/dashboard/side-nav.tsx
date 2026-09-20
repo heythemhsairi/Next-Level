@@ -188,12 +188,12 @@ function NavLink({
       className={cn(
         "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
         active
-          ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-brand-glow"
+          ? "bg-brand/15 text-white ring-1 ring-inset ring-brand/35"
           : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
       )}
     >
       {active && (
-        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light shadow-[0_0_10px_rgba(255,42,42,0.8)]" />
+        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light" />
       )}
       <NavIcon d={item.icon} />
       <span className="relative flex-1 truncate">{item.label}</span>
@@ -224,13 +224,19 @@ function NavList({
   counts?: NavCounts;
   onNavigate?: () => void;
 }) {
-  // Collapsible group state, persisted per-group. Default: everything open.
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // Keep the daily tools visible; secondary sections open on demand.
+  const defaultCollapsed: Record<string, boolean> = {
+    pipeline: true,
+    money: true,
+    team: true,
+    system: true,
+  };
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(defaultCollapsed);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem("nl:nav-collapsed");
-      if (raw) setCollapsed(JSON.parse(raw));
+      if (raw) setCollapsed({ ...defaultCollapsed, ...JSON.parse(raw) });
     } catch {
       /* ignore */
     }
@@ -273,7 +279,7 @@ function NavList({
           );
         }
 
-        const isOpen = !collapsed[group];
+        const isOpen = groupItems.some((item) => isActive(pathname, item.href)) || !collapsed[group];
         return (
           <div key={group} className="mb-5 last:mb-0">
             <button
@@ -306,7 +312,7 @@ function PrimaryAction({
     <Link
       href={action.href}
       onClick={onNavigate}
-      className="group mb-4 flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#FF2A2A,#B00C12)] px-3 py-2.5 text-[13.5px] font-display font-bold text-white shadow-brand-glow transition-all duration-300 hover:-translate-y-[2px] hover:shadow-brand-glow-hover"
+      className="group mb-4 flex items-center justify-center gap-2 rounded-xl border border-brand/40 bg-brand/15 px-3 py-2.5 text-[13.5px] font-display font-bold text-white transition-colors duration-200 hover:bg-brand/25"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d={action.icon} />

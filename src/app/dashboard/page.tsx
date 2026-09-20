@@ -7,7 +7,6 @@ import { getMomentum, type Momentum } from "@/lib/momentum";
 import { getDonutPalette } from "@/components/charts/palette";
 import { type StaleDevisRow } from "@/components/stale-devis-banner";
 import { PriorityPinsSection } from "./priorities-section";
-import { TodaySummary } from "@/components/dashboard/today-summary";
 import { ActionCenter, type ActionItem } from "@/components/dashboard/action-center";
 
 // Defensive helper so one failing query can't take down the whole page.
@@ -694,13 +693,6 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-7">
       <ActionCenter items={actionItems} />
-      {!isSales && (
-        <TodaySummary
-          overdueCount={summaryOverdue}
-          dueTodayCount={summaryDueToday}
-          scope={isAdmin ? "team" : "me"}
-        />
-      )}
       {!isSales && priorityPins.length > 0 && (
         <PriorityPinsSection
           pins={priorityPins.map((p) => ({

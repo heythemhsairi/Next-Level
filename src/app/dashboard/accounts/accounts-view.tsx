@@ -97,6 +97,7 @@ export function AccountsView({
       if (r.ok) {
         if (r.link) setLink(r.link);
         toast.success(r.message ?? "Done.");
+        if (r.warning) toast.error(r.warning);
         onOk?.(r);
       } else {
         toast.error(r.error);
