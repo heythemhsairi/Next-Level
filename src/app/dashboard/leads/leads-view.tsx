@@ -51,7 +51,7 @@ export function LeadsView({ leads }: { leads: Lead[] }) {
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
           {LEAD_STATUS_ORDER.map((status) => (
-            <div key={status} className="space-y-3">
+            <div key={status} className={grouped[status].length === 0 ? "hidden space-y-3 md:block" : "space-y-3"}>
               <div className="flex items-center justify-between px-1">
                 <Badge tone={LEAD_STATUS_TONE[status]} dot>
                   {LEAD_STATUS_LABEL[status]}

@@ -115,7 +115,7 @@ export function DeliverablesView({
                 onClick={() => setFilter("all")}
                 label={`All (${counts.all})`}
               />
-              {STATUS_ORDER.map((s) => (
+              {STATUS_ORDER.filter((s) => counts[s] > 0 || filter === s).map((s) => (
                 <FilterChip
                   key={s}
                   active={filter === s}
@@ -129,6 +129,24 @@ export function DeliverablesView({
           {filtered.length === 0 ? (
             <EmptyState>No deliverables match your filters.</EmptyState>
           ) : (
+            <>
+            <div className="space-y-3 lg:hidden">
+              {filtered.map((d) => (
+                <article key={d.id} className="rounded-2xl border border-white/10 bg-ink-2 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link href={`/dashboard/deliverables/${d.id}`} className="min-w-0 text-sm font-semibold text-white hover:text-brand-light">{d.title}</Link>
+                    <Badge tone={STATUS_TONE[d.status]} dot>{STATUS_LABEL[d.status]}</Badge>
+                  </div>
+                  <p className="mt-2 truncate text-xs text-white/55">{d.project_name ?? "No project"}{d.client_name ? ` · ${d.client_name}` : ""}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-3 text-xs">
+                    <span className={d.client_visible ? "text-emerald-300" : "text-white/45"}>{d.client_visible ? "Visible to client" : "Internal"}</span>
+                    {d.video_url && <a href={d.video_url} target="_blank" rel="noopener noreferrer" className="text-brand-light hover:text-white">Open video</a>}
+                    <Link href={`/dashboard/deliverables/${d.id}`} className="ml-auto text-white/70 hover:text-white">Details →</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden lg:block">
             <Table>
               <THead>
                 <TR>
@@ -212,6 +230,8 @@ export function DeliverablesView({
                 ))}
               </TBody>
             </Table>
+            </div>
+            </>
           )}
         </>
       )}
