@@ -16,7 +16,7 @@ export default async function SocialMediaPage({
       supabase
         .from("social_posts")
         .select(
-          "id, title, content, platforms, status, scheduled_at, published_at, media_url, hashtags, first_comment, notes, project_id, task_id, created_by, created_at, projects:project_id(name), tasks:task_id(title), profiles:created_by(full_name, username)",
+          "id, title, content, platforms, status, scheduled_at, published_at, media_url, hashtags, first_comment, notes, client_visible, project_id, task_id, created_by, created_at, projects:project_id(name), tasks:task_id(title), profiles:created_by(full_name, username)",
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -46,6 +46,7 @@ export default async function SocialMediaPage({
       hashtags: p.hashtags ?? "",
       first_comment: p.first_comment ?? "",
       notes: p.notes ?? "",
+      client_visible: p.client_visible ?? false,
       project_id: p.project_id,
       task_id: p.task_id,
       project_name: proj?.name ?? null,

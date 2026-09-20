@@ -36,6 +36,7 @@ export async function createSocialPostAction(formData: FormData) {
   const notes = (formData.get("notes") as string | null)?.trim() ?? "";
   const project_id = (formData.get("project_id") as string | null) || null;
   const task_id = (formData.get("task_id") as string | null) || null;
+  const client_visible = formData.get("client_visible") != null;
 
   if (!title) return { ok: false, error: "Title is required" };
   if (platforms.length === 0) return { ok: false, error: "At least one platform is required" };
@@ -54,6 +55,7 @@ export async function createSocialPostAction(formData: FormData) {
     notes,
     project_id,
     task_id,
+    client_visible,
     created_by: session.id,
   });
 
@@ -80,6 +82,7 @@ export async function updateSocialPostAction(formData: FormData) {
   const notes = (formData.get("notes") as string | null)?.trim() ?? "";
   const project_id = (formData.get("project_id") as string | null) || null;
   const task_id = (formData.get("task_id") as string | null) || null;
+  const client_visible = formData.get("client_visible") != null;
 
   if (!title) return { ok: false, error: "Title is required" };
   if (platforms.length === 0) return { ok: false, error: "At least one platform is required" };
@@ -88,7 +91,7 @@ export async function updateSocialPostAction(formData: FormData) {
 
   const { error } = await supabase
     .from("social_posts")
-    .update({ title, content, platforms, status, scheduled_at, media_url, hashtags, first_comment, notes, project_id, task_id })
+    .update({ title, content, platforms, status, scheduled_at, media_url, hashtags, first_comment, notes, project_id, task_id, client_visible })
     .eq("id", id);
 
   if (error) return { ok: false, error: error.message };

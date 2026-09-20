@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/portal", label: "Home" },
+  { href: "/portal/calendar", label: "Content" },
   { href: "/portal/videos", label: "My Videos" },
   { href: "/portal/messages", label: "Messages" },
   { href: "/portal/files", label: "Files" },
