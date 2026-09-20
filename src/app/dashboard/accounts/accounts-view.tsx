@@ -495,6 +495,22 @@ function EditModal({
           {account.role === "client" && (
             <div>
               <label className="mb-1 block text-xs font-semibold text-ink/60">
+                Email
+              </label>
+              <Input
+                name="email"
+                type="email"
+                defaultValue={account.email ?? ""}
+                placeholder="name@company.com"
+              />
+              <p className="mt-1 text-[11px] text-ink/45">
+                Changing this updates their sign-in email.
+              </p>
+            </div>
+          )}
+          {account.role === "client" && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-ink/60">
                 Linked client
               </label>
               <Select name="client_id" defaultValue={account.clientId ?? ""}>

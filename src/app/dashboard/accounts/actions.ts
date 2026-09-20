@@ -92,7 +92,7 @@ export async function inviteClientAccountAction(
     return { ok: false, error: "Could not allocate a unique username." };
   }
 
-  const { data: linkData } = await admin.auth.admin.generateLink({
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: "recovery",
     email,
   });
@@ -108,7 +108,9 @@ export async function inviteClientAccountAction(
     link,
     message: link
       ? "Account created. Share this set-password link with the client."
-      : "Account created, but no link could be generated — use Reset access.",
+      : `Account created, but no link could be generated${
+          linkErr ? ` (${linkErr.message})` : ""
+        } — use Reset access to try again.`,
   };
 }
 
@@ -153,7 +155,19 @@ export async function suspendAccountAction(
     .eq("id", userId);
   if (profErr) return { ok: false, error: profErr.message };
 
-  await admin.auth.admin.updateUserById(userId, { ban_duration: SUSPEND_BAN });
+  const { error: banErr } = await admin.auth.admin.updateUserById(userId, {
+    ban_duration: SUSPEND_BAN,
+  });
+  if (banErr) {
+    // Roll back the profile flag so we never leave a half-suspended account
+    // (blocked at the app layer but still able to hold a live auth session).
+    await admin.from("profiles").update({ status: "active" }).eq("id", userId);
+    return {
+      ok: false,
+      error: `Couldn't suspend at the auth layer: ${banErr.message}`,
+    };
+  }
+
   await logAudit(admin, session.id, userId, "suspend");
   revalidatePath("/dashboard/accounts");
   return { ok: true, message: "Account suspended." };
@@ -173,7 +187,18 @@ export async function reactivateAccountAction(
     .eq("id", userId);
   if (profErr) return { ok: false, error: profErr.message };
 
-  await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+  const { error: unbanErr } = await admin.auth.admin.updateUserById(userId, {
+    ban_duration: "none",
+  });
+  if (unbanErr) {
+    // Roll back so the account isn't marked active while still auth-banned.
+    await admin.from("profiles").update({ status: "suspended" }).eq("id", userId);
+    return {
+      ok: false,
+      error: `Couldn't lift the auth ban: ${unbanErr.message}`,
+    };
+  }
+
   await logAudit(admin, session.id, userId, "reactivate");
   revalidatePath("/dashboard/accounts");
   return { ok: true, message: "Account reactivated." };
@@ -187,6 +212,7 @@ export async function editAccountAction(
   const userId = String(formData.get("user_id") ?? "").trim();
   const fullNameRaw = String(formData.get("full_name") ?? "").trim();
   const clientId = String(formData.get("client_id") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!userId) return { ok: false, error: "Missing account." };
 
   const patch: Record<string, unknown> = {
@@ -195,10 +221,28 @@ export async function editAccountAction(
   if (clientId) patch.client_id = clientId;
 
   const admin = createAdminClient();
+
+  // Email lives in auth.users, not profiles — update it there when changed.
+  if (email) {
+    if (!email.includes("@")) {
+      return { ok: false, error: "Enter a valid email address." };
+    }
+    const { error: emailErr } = await admin.auth.admin.updateUserById(userId, {
+      email,
+      email_confirm: true,
+    });
+    if (emailErr) {
+      return { ok: false, error: `Couldn't update email: ${emailErr.message}` };
+    }
+  }
+
   const { error } = await admin.from("profiles").update(patch).eq("id", userId);
   if (error) return { ok: false, error: error.message };
 
-  await logAudit(admin, session.id, userId, "edit", patch);
+  await logAudit(admin, session.id, userId, "edit", {
+    ...patch,
+    ...(email ? { email } : {}),
+  });
   revalidatePath("/dashboard/accounts");
   return { ok: true, message: "Account updated." };
 }

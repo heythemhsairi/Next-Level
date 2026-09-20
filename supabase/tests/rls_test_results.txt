@@ -1,0 +1,36 @@
+### Rebuilding test schema ...
+### Applying real migration files 0022, 0023, 0024, 0025 ...
+  applied 20260605000022_deliverable_client_status_rpc
+  applied 20260605000023_portal_accounts
+  applied 20260605000024_social_posts_client_calendar
+  applied 20260605000025_drop_legacy_deliverable_update
+
+### Cross-client isolation (social_posts RLS)
+  PASS  client A sees only own visible posts (1)
+  PASS  client A cannot see client B's post
+  PASS  client A cannot see hidden post
+  PASS  client B sees only own visible posts (1)
+  PASS  staff (editor) sees all posts (3)
+
+### Deliverable status RPC (valid transition + guards)
+  PASS  valid in_review->approved applied
+  PASS  invalid status value rejected (nonzero exit)
+  PASS  non in_review row rejected (from-state guard)
+  PASS  delivered row unchanged after guard
+  PASS  cross-client RPC call rejected
+
+### Insecure legacy policy removed (migration 0025)
+  PASS  deliverables_client_update policy is gone
+  PASS  raw client UPDATE no longer mutates row
+
+### Audit table access (admin-only RLS)
+  PASS  admin can read audit events (>=1)
+  PASS  client CANNOT read audit events (0)
+  PASS  staff (editor) CANNOT read audit events (0)
+
+### profiles.status column present (migration 0023)
+  PASS  profiles.status exists
+
+======================================================
+  RESULT: 16 passed, 0 failed
+======================================================

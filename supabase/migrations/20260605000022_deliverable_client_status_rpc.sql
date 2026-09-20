@@ -1,18 +1,18 @@
--- Next Level — lock down client-driven deliverable status changes.
+-- Next Level — lock down client-driven deliverable status changes (step 1 of 2).
 --
--- The previous `deliverables_client_update` policy let a client UPDATE their
--- own visible deliverable with NO column restriction (RLS cannot limit which
--- columns change). A crafted request could therefore rewrite title, video_url,
--- client_visible, project_id, position, etc. — not just status. This migration
--- removes that broad policy and replaces it with a SECURITY DEFINER RPC that
--- only ever sets `status`, and only to an allowed client transition, on a row
--- the caller actually owns.
+-- The `deliverables_client_update` policy (migration ...0020) lets a client
+-- UPDATE their own visible deliverable with NO column restriction (RLS cannot
+-- limit which columns change) — a crafted request could rewrite title,
+-- video_url, client_visible, project_id, etc. This migration adds a locked-down
+-- SECURITY DEFINER RPC that only ever sets `status`, only for a VALID client
+-- transition (from in_review), on a row the caller owns.
+--
+-- IMPORTANT (zero-downtime): this migration deliberately does NOT drop the old
+-- policy. It is backward-compatible — old code (direct .update) keeps working
+-- via the existing policy, and new code works via the RPC. The insecure policy
+-- is dropped only in the follow-up migration ...0025, which is applied AFTER
+-- the new code is live. That ordering avoids an approval outage.
 
--- 1. Remove the over-broad client UPDATE policy. Clients no longer update
---    deliverables directly; they go through the RPC below.
-drop policy if exists "deliverables_client_update" on public.deliverables;
-
--- 2. Controlled status transition for the owning client.
 create or replace function public.client_set_deliverable_status(
   p_deliverable_id uuid,
   p_status text
@@ -33,11 +33,14 @@ begin
     raise exception 'invalid status %', p_status using errcode = '22023';
   end if;
 
-  -- The deliverable must be client-visible AND belong to the caller's client.
+  -- Valid transition only: a client acts on a deliverable that is awaiting
+  -- their review. The row must be client-visible AND belong to the caller's
+  -- client AND currently be in_review.
   update public.deliverables d
      set status = p_status::deliverable_status
    where d.id = p_deliverable_id
      and d.client_visible
+     and d.status = 'in_review'
      and exists (
        select 1 from public.projects p
        where p.id = d.project_id
@@ -45,13 +48,11 @@ begin
      );
 
   if not found then
-    raise exception 'deliverable not found or not permitted'
+    raise exception 'deliverable not found, not permitted, or not awaiting review'
       using errcode = '42501';
   end if;
 end;
 $$;
 
--- 3. Lock down execution. The function body enforces the client role itself;
---    we still restrict EXECUTE to authenticated users only.
 revoke all on function public.client_set_deliverable_status(uuid, text) from public;
 grant execute on function public.client_set_deliverable_status(uuid, text) to authenticated;
