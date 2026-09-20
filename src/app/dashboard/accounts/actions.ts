@@ -160,12 +160,13 @@ export async function resetAccessAction(
     email,
   });
   if (error) return { ok: false, error: error.message };
+  const tokenHash = data?.properties?.hashed_token;
+  if (!tokenHash) return { ok: false, error: "No recovery link was generated. Please try again." };
 
   const auditOk = await logAudit(admin, session.id, userId, "reset", { email });
-  const tokenHash = data?.properties?.hashed_token;
   return {
     ok: true,
-    link: tokenHash ? await recoveryLink(tokenHash) : undefined,
+    link: await recoveryLink(tokenHash),
     message: "Share this link so they can set a new password.",
     warning: auditOk ? undefined : AUDIT_WARNING,
   };
