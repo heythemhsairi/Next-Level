@@ -23,7 +23,7 @@ export async function requireSession(): Promise<SessionProfile> {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, role, avatar_url, job_title, client_id")
+    .select("id, username, full_name, role, avatar_url, job_title, client_id, status")
     .eq("id", user.id)
     .single();
 
@@ -36,6 +36,13 @@ export async function requireSession(): Promise<SessionProfile> {
   if (error || !profile) {
     await supabase.auth.signOut();
     redirect("/login");
+  }
+
+  // A suspended account is denied here too — no page, staff or client, renders
+  // for it. (The account is also banned at the auth layer when suspended.)
+  if ((profile as { status?: string }).status === "suspended") {
+    await supabase.auth.signOut();
+    redirect("/login?suspended=1");
   }
 
   return {

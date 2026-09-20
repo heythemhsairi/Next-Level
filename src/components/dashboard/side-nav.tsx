@@ -55,6 +55,8 @@ const ICONS: Record<string, string> = {
   analytics: "M4 20V10 M10 20V4 M16 20v-7 M20 20H2",
   announcements:
     "M3 11v2a1 1 0 0 0 1 1h2l4 4V7L6 11H4a1 1 0 0 0-1 0z M14 8a4 4 0 0 1 0 8 M16 5a7 7 0 0 1 0 14",
+  accounts:
+    "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M3 20a6 6 0 0 1 12 0 M16 11l2 2 4-4",
 };
 
 const GROUP_LABEL: Record<Group, string> = {
@@ -114,6 +116,7 @@ function buildNav(t: ReturnType<typeof useI18n>["t"]): NavItem[] {
     { href: "/dashboard/team", label: t.nav.team, icon: ICONS.team, rolesAllowed: ADMIN_ALL, group: "team" },
 
     // SYSTEM — admin config
+    { href: "/dashboard/accounts", label: "Accounts", icon: ICONS.accounts, rolesAllowed: ADMIN_ALL, group: "system" },
     { href: "/dashboard/services", label: t.nav.services, icon: ICONS.services, rolesAllowed: ADMIN_ALL, group: "system" },
     { href: "/dashboard/settings", label: t.nav.settings, icon: ICONS.settings, rolesAllowed: ADMIN_ALL, group: "system" },
   ];
