@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -36,6 +36,12 @@ export function TasksView({
   const { t } = useI18n();
   const [filters, setFilters] = useState<TasksFilters>(DEFAULT_FILTERS);
   const [view, setView] = useState<View>("kanban");
+
+  // A compact list is easier to scan on a phone than four stacked board
+  // columns, especially when several columns are empty.
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 639px)").matches) setView("list");
+  }, []);
 
   const filtered = useMemo(
     () => applyFilters(tasks, filters, currentUserAssigneeId),

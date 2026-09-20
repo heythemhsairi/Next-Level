@@ -39,19 +39,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen">
-      {/*
-        Decorative background — a fixed, viewport-sized layer of soft purple
-        glow over the near-black base. Stays put while scrolling; clips its
-        own blurred blobs.
-      */}
+      {/* A quiet red tint preserves depth without competing with the data. */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       >
         <div className="absolute inset-0 bg-mesh" />
-        <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] rounded-full bg-brand/25 blur-[130px]" />
-        <div className="absolute right-[-12rem] top-1/4 h-[30rem] w-[30rem] rounded-full bg-brand-light/15 blur-[120px]" />
-        <div className="absolute -bottom-48 left-1/3 h-[34rem] w-[34rem] rounded-full bg-brand-dark/25 blur-[130px]" />
+        <div className="absolute -left-40 -top-40 h-[36rem] w-[36rem] rounded-full bg-brand/10 blur-[140px]" />
+        <div className="absolute right-[-12rem] top-1/4 h-[28rem] w-[28rem] rounded-full bg-brand-light/[0.05] blur-[130px]" />
       </div>
 
       {/* Fixed left sidebar (desktop) — brand + grouped nav + user. */}

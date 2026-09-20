@@ -1,7 +1,6 @@
 "use client";
 
 import { CountUp } from "@/components/charts/count-up";
-import { ProgressRing } from "@/components/charts/progress-ring";
 import { StreakChip } from "./streak-chip";
 
 function greetingTime(): string {
@@ -23,9 +22,7 @@ export type PulseStat = {
 };
 
 /**
- * Cinematic pulse band: scarlet gradient hero with a greeting and a live
- * "pulse" row — an optional collection-rate ring plus up to three stats.
- * Shared by every role home; copy + stats are passed in per role.
+ * A calm, compact welcome with only the useful numbers for this role.
  */
 export function HomeHero({
   eyebrow,
@@ -45,49 +42,33 @@ export function HomeHero({
   stats: PulseStat[];
   streak?: { count: number; label: string };
 }) {
+  const visibleStats = stats.filter((stat) => stat.value > 0);
   return (
-    <section className="reveal relative overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br from-brand via-brand-dark to-[#170406] p-6 shadow-brand-glow sm:p-8 surface-grain">
-      <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand-light/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-brand/40 blur-3xl" />
-
-      <div className="relative">
-        <p className="text-[11px] font-display font-bold uppercase tracking-[0.22em] text-cream/80">
+    <section className="reveal rounded-2xl border border-white/10 bg-ink-2 px-5 py-5 sm:px-7 sm:py-6">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+        <p className="text-[11px] font-display font-bold uppercase tracking-[0.18em] text-brand-light">
           {eyebrow}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-display font-extrabold tracking-tight text-white md:text-[38px]">
+          <h1 className="text-balance text-2xl font-display font-bold tracking-tight text-white md:text-[30px]">
             {greetingTime()}, {firstName} 👋
           </h1>
-          {streak && <StreakChip count={streak.count} label={streak.label} className="!bg-white/15 !text-white !ring-white/25" />}
+          {streak && <StreakChip count={streak.count} label={streak.label} className="!bg-white/10 !text-white !ring-white/15" />}
         </div>
-        {tagline && <p className="mt-1.5 text-sm text-cream/70">{tagline}</p>}
+        {tagline && <p className="mt-1 text-sm text-cream/60">{tagline}</p>}
+        </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-5">
-          {ringValue !== null && ringValue !== undefined && (
-            <div className="flex items-center gap-3">
-              <ProgressRing
-                value={ringValue}
-                size={66}
-                thickness={7}
-                color="#FFFFFF"
-                trackColor="rgba(0,0,0,0.25)"
-                label={
-                  <span className="text-sm font-bold text-white tabular-nums">
-                    {Math.round(ringValue)}%
-                  </span>
-                }
-              />
-              {ringLabel && (
-                <span className="max-w-[7rem] text-xs font-medium leading-tight text-cream/75">
-                  {ringLabel}
-                </span>
-              )}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-4 sm:flex sm:flex-wrap sm:gap-x-8 sm:border-t-0 sm:pt-0">
+          {ringValue !== null && ringValue !== undefined && ringLabel && (
+            <div className="min-w-[7rem]">
+              <p className="text-xl font-display font-bold leading-none text-white tabular-nums">{Math.round(ringValue)}%</p>
+              <p className="mt-1.5 text-[11px] text-cream/55">{ringLabel}</p>
             </div>
           )}
-
-          {stats.map((s, i) => (
-            <div key={i} className="min-w-[5rem]">
-              <p className="text-2xl font-display font-extrabold leading-none text-white tabular-nums md:text-[28px]">
+          {visibleStats.map((s) => (
+            <div key={s.label} className="min-w-[6rem]">
+              <p className="text-xl font-display font-bold leading-none text-white tabular-nums">
                 <CountUp
                   to={s.value}
                   decimals={s.decimals ?? 0}
@@ -95,11 +76,14 @@ export function HomeHero({
                   suffix={s.suffix}
                 />
               </p>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-cream/65">
+              <p className="mt-1.5 text-[11px] text-cream/55">
                 {s.label}
               </p>
             </div>
           ))}
+          {visibleStats.length === 0 && ringValue == null && (
+            <p className="max-w-44 text-sm text-cream/50">Your work and activity will appear here.</p>
+          )}
         </div>
       </div>
     </section>

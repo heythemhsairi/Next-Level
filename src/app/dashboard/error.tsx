@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardError({
   error,
@@ -16,33 +15,18 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <main className="grid min-h-screen place-items-center bg-cream bg-mesh px-4 py-12">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>Something went wrong</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <p className="text-ink/70">
-            The dashboard page could not be loaded. Details below
-            (share with support if needed):
-          </p>
-          <pre className="overflow-x-auto rounded-md bg-ink/5 p-3 text-xs text-ink/80">
-            {error.message || "Unknown error"}
-            {error.digest && `\n\nDigest: ${error.digest}`}
-          </pre>
-          <div className="flex gap-2">
+    <div className="grid min-h-[55vh] place-items-center px-4 py-12">
+      <section className="w-full max-w-md rounded-2xl border border-white/10 bg-ink-2 p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-light">Connection issue</p>
+        <h1 className="mt-2 text-2xl font-semibold text-white">This page could not load</h1>
+        <p className="mt-2 text-sm leading-relaxed text-cream/65">Your work is still saved. Try again, or return to the overview.</p>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Button onClick={reset} size="sm">
               Retry
             </Button>
-            <a
-              href="/dashboard"
-              className="inline-flex h-8 items-center justify-center rounded-md border border-ink/15 bg-white px-3 text-sm font-medium text-ink hover:bg-cream-dark"
-            >
-              Reload the page
-            </a>
+            <a href="/dashboard" className="inline-flex h-8 items-center justify-center rounded-md border border-white/15 px-3 text-sm font-medium text-white hover:bg-white/10">Overview</a>
           </div>
-        </CardContent>
-      </Card>
-    </main>
+      </section>
+    </div>
   );
 }

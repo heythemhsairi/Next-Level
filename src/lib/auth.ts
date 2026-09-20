@@ -21,23 +21,45 @@ export async function requireSession(): Promise<SessionProfile> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  let { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, role, avatar_url, job_title, client_id")
+    .select("id, username, full_name, role, avatar_url, job_title, client_id, status")
     .eq("id", user.id)
     .single();
 
-  if (!profile) {
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      username: user.email?.split("@")[0] ?? "user",
-      full_name: null,
-      role: "editor",
-      avatar_url: null,
-      job_title: null,
-      client_id: null,
-    };
+  // Preview builds may be reviewed before the additive accounts migration is
+  // applied to the shared database. Keep production fail-closed, while allowing
+  // pre-migration visual QA in development/preview only. Suspended users remain
+  // blocked by the auth-layer ban in both environments.
+  if (
+    error?.code === "42703" &&
+    (process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview")
+  ) {
+    const legacy = await supabase
+      .from("profiles")
+      .select("id, username, full_name, role, avatar_url, job_title, client_id")
+      .eq("id", user.id)
+      .single();
+    profile = legacy.data as typeof profile;
+    error = legacy.error;
+  }
+
+  // Fail closed. An authenticated user whose profile can't be resolved — a
+  // missing/orphaned row, a deleted account, or a transient lookup error —
+  // must NOT be granted a role. This previously fell back to `editor`, i.e.
+  // silent staff access (a privilege escalation). Deny instead: sign the
+  // stale session out and bounce to /login. The middleware guard below keeps
+  // this from looping straight back into a protected route.
+  if (error || !profile) {
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
+
+  // A suspended account is denied here too — no page, staff or client, renders
+  // for it. (The account is also banned at the auth layer when suspended.)
+  if ((profile as { status?: string }).status === "suspended") {
+    await supabase.auth.signOut();
+    redirect("/login?suspended=1");
   }
 
   return {

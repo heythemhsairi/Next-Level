@@ -32,6 +32,7 @@ export type SocialPost = {
   hashtags: string;
   first_comment: string;
   notes: string;
+  client_visible: boolean;
   project_id: string | null;
   task_id: string | null;
   project_name: string | null;
@@ -421,6 +422,17 @@ function PostForm({
               placeholder="Instructions for the team, reminders, context…"
             />
           </div>
+
+          {/* Client visibility — surfaces this post in the client content calendar */}
+          <label className="flex items-center gap-2 text-xs font-medium text-ink/70">
+            <input
+              type="checkbox"
+              name="client_visible"
+              defaultChecked={post?.client_visible ?? false}
+              className="h-4 w-4 rounded border-ink/20 text-brand focus:ring-2 focus:ring-brand/30"
+            />
+            Show in the client&apos;s content calendar
+          </label>
         </div>
       )}
 

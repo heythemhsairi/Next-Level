@@ -57,8 +57,8 @@ export function TD({ className, ...rest }: TdHTMLAttributes<HTMLTableCellElement
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-ink/12 bg-white/70 px-6 py-16 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-cream-dark text-ink/40">
+    <div className="rounded-2xl border border-white/10 bg-ink-2 px-6 py-12 text-center">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-ink/55">
         <svg
           width="18"
           height="18"
@@ -69,11 +69,10 @@ export function EmptyState({ children }: { children: React.ReactNode }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6m0 4h.01" />
+          <path d="M4 5h16v14H4z M8 9h8 M8 13h5" />
         </svg>
       </div>
-      <p className="text-sm text-ink/55">{children}</p>
+      <p className="text-sm leading-relaxed text-ink/65">{children}</p>
     </div>
   );
 }

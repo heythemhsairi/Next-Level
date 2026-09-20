@@ -78,9 +78,25 @@ export default async function PortalHome() {
   const deliveryPct =
     totalVideos > 0 ? Math.round((deliveredCount / totalVideos) * 100) : 0;
   const recentVideos = allVideos.slice(0, 5);
+  const pendingApproval = allVideos.filter((v) => v.status === "in_review");
   const firstName = (client?.name ?? session.full_name ?? session.username).split(
     " ",
   )[0];
+
+  // This month's client-visible content (links to the content calendar).
+  const { data: contentPosts, error: contentError } = await supabase
+    .from("social_posts")
+    .select("id, title, status, scheduled_at")
+    .eq("client_visible", true);
+  const nowD = new Date();
+  const thisMonthPosts = (contentPosts ?? []).filter((p) => {
+    if (!p.scheduled_at) return false;
+    const d = new Date(p.scheduled_at);
+    return (
+      d.getFullYear() === nowD.getFullYear() && d.getMonth() === nowD.getMonth()
+    );
+  }).sort((a, b) => (a.scheduled_at ?? "").localeCompare(b.scheduled_at ?? ""));
+  const contentThisMonth = thisMonthPosts.length;
 
   // Per-project progress: delivered videos vs total videos shared on it.
   const progressByProject = new Map<string, { delivered: number; total: number }>();
@@ -108,22 +124,18 @@ export default async function PortalHome() {
   });
 
   return (
-    <div className="space-y-8">
-      {/* Cinematic hero with a live delivery-progress ring. */}
-      <section className="reveal relative overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br from-brand via-brand-dark to-[#170406] p-6 shadow-brand-glow sm:p-8 surface-grain">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand-light/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-10 h-48 w-48 rounded-full bg-brand/40 blur-3xl" />
-
-        <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+    <div className="space-y-6 sm:space-y-8">
+      <section className="reveal rounded-2xl border border-white/10 bg-ink-2 p-5 sm:p-7">
+        <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
           <div>
-            <p className="text-[11px] font-display font-bold uppercase tracking-[0.22em] text-cream/80">
+            <p className="text-[11px] font-display font-bold uppercase tracking-[0.18em] text-brand-light">
               Your studio · {client?.name ?? "Welcome"}
             </p>
-            <h1 className="mt-2 text-3xl font-display font-extrabold tracking-tight text-white md:text-[38px]">
+            <h1 className="mt-2 text-balance text-2xl font-display font-bold tracking-tight text-white sm:text-3xl">
               Welcome back, {firstName} 👋
             </h1>
-            <p className="mt-1.5 text-sm text-cream/70">
-              Your videos, payments, and work in progress — all in one place.
+            <p className="mt-1.5 max-w-xl text-sm text-cream/60">
+              See what is planned, what needs your feedback, and what is ready to share.
             </p>
           </div>
 
@@ -131,7 +143,7 @@ export default async function PortalHome() {
             <div className="flex shrink-0 items-center gap-3">
               <ProgressRing
                 value={deliveryPct}
-                size={84}
+                size={70}
                 thickness={8}
                 color="#FFFFFF"
                 trackColor="rgba(0,0,0,0.25)"
@@ -152,14 +164,57 @@ export default async function PortalHome() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Videos delivered" value={String(deliveredCount)} />
-        <Stat
-          label="Outstanding balance"
-          value={formatDt(outstanding)}
-          tone={outstanding > 0 ? "alert" : "ok"}
-        />
-        <Stat label="Active tasks" value={String(activeTasks)} />
+      {/* What needs you today — client-facing approvals queue. */}
+      {pendingApproval.length > 0 && (
+        <section className="reveal flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/35 bg-brand/[0.08] p-4 sm:p-5">
+          <div>
+            <p className="text-sm font-semibold text-cream">
+              {pendingApproval.length}{" "}
+              {pendingApproval.length === 1 ? "video needs" : "videos need"} your
+              review
+            </p>
+            <p className="text-xs text-cream/60">
+              Approve or request changes so your team can keep moving.
+            </p>
+          </div>
+          <Link
+            href="/portal/videos"
+            className="shrink-0 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+          >
+            Review now
+          </Link>
+        </section>
+      )}
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(250px,1fr)]">
+        <div className="rounded-2xl border border-white/10 bg-ink-2 p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-light">This month</p>
+              <h2 className="mt-1 text-xl font-semibold text-white">Your content plan</h2>
+              <p className="mt-1 text-sm text-cream/55">{contentError ? "Your content calendar is being prepared." : contentThisMonth > 0 ? `${contentThisMonth} planned ${contentThisMonth === 1 ? "post" : "posts"}` : "Your team will add planned content here."}</p>
+            </div>
+            <Link href="/portal/calendar" className="shrink-0 text-sm font-semibold text-brand-light hover:text-white">Calendar →</Link>
+          </div>
+          {thisMonthPosts.length > 0 && (
+            <ul className="mt-5 divide-y divide-white/10 border-t border-white/10">
+              {thisMonthPosts.slice(0, 3).map((post) => (
+                <li key={post.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                  <span className="min-w-0 truncate text-cream/85">{post.title}</span>
+                  <span className="shrink-0 text-xs text-cream/50">{post.scheduled_at ? new Date(post.scheduled_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : post.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {deliveredCount > 0 && <Stat label="Videos delivered" value={String(deliveredCount)} />}
+          {activeTasks > 0 && <Stat label="Active tasks" value={String(activeTasks)} />}
+          {outstanding > 0 && <Stat label="Outstanding balance" value={formatDt(outstanding)} tone="alert" />}
+          {deliveredCount === 0 && activeTasks === 0 && outstanding === 0 && (
+            <div className="col-span-2 flex items-center rounded-2xl border border-white/10 bg-ink-2 p-5 text-sm text-cream/55">Your project activity will appear here as work moves forward.</div>
+          )}
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-2">

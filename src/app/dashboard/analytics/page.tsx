@@ -249,25 +249,17 @@ export default async function AnalyticsPage() {
         <Kpi
           label="Projects"
           value={totalProjects}
-          sub={`${activeProjects} active`}
+          sub={activeProjects > 0 ? `${activeProjects} active` : undefined}
         />
         <Kpi
           label="Deliverables"
           value={totalDeliverables}
-          sub={`${deliveredCount} delivered`}
+          sub={deliveredCount > 0 ? `${deliveredCount} delivered` : undefined}
         />
-        <Kpi label="Leads" value={totalLeads} sub={`${wonLeads} won`} />
-        <KpiMoney label="Invoiced" value={totalInvoiced} />
-        <KpiMoney label="Paid" value={totalPaid} />
-        <KpiMoney
-          label="Outstanding"
-          value={Math.max(0, totalInvoiced - totalPaid)}
-        />
-        <Kpi
-          label="Active projects"
-          value={activeProjects}
-          sub={`of ${totalProjects}`}
-        />
+        <Kpi label="Leads" value={totalLeads} sub={wonLeads > 0 ? `${wonLeads} won` : undefined} />
+        {totalInvoiced > 0 && <KpiMoney label="Invoiced" value={totalInvoiced} />}
+        {totalPaid > 0 && <KpiMoney label="Paid" value={totalPaid} />}
+        {totalInvoiced > totalPaid && <KpiMoney label="Outstanding" value={totalInvoiced - totalPaid} />}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

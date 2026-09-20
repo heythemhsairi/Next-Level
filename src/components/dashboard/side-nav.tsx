@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn, type AnyUserRole } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand-logo";
@@ -54,6 +55,8 @@ const ICONS: Record<string, string> = {
   analytics: "M4 20V10 M10 20V4 M16 20v-7 M20 20H2",
   announcements:
     "M3 11v2a1 1 0 0 0 1 1h2l4 4V7L6 11H4a1 1 0 0 0-1 0z M14 8a4 4 0 0 1 0 8 M16 5a7 7 0 0 1 0 14",
+  accounts:
+    "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M3 20a6 6 0 0 1 12 0 M16 11l2 2 4-4",
 };
 
 const GROUP_LABEL: Record<Group, string> = {
@@ -113,6 +116,7 @@ function buildNav(t: ReturnType<typeof useI18n>["t"]): NavItem[] {
     { href: "/dashboard/team", label: t.nav.team, icon: ICONS.team, rolesAllowed: ADMIN_ALL, group: "team" },
 
     // SYSTEM — admin config
+    { href: "/dashboard/accounts", label: "Accounts", icon: ICONS.accounts, rolesAllowed: ADMIN_ALL, group: "system" },
     { href: "/dashboard/services", label: t.nav.services, icon: ICONS.services, rolesAllowed: ADMIN_ALL, group: "system" },
     { href: "/dashboard/settings", label: t.nav.settings, icon: ICONS.settings, rolesAllowed: ADMIN_ALL, group: "system" },
   ];
@@ -184,12 +188,12 @@ function NavLink({
       className={cn(
         "group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-200",
         active
-          ? "bg-gradient-to-r from-brand/90 to-brand-dark/90 text-white shadow-brand-glow"
+          ? "bg-brand/15 text-white ring-1 ring-inset ring-brand/35"
           : "text-ink/60 hover:bg-white/[0.06] hover:text-ink",
       )}
     >
       {active && (
-        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light shadow-[0_0_10px_rgba(255,42,42,0.8)]" />
+        <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-light" />
       )}
       <NavIcon d={item.icon} />
       <span className="relative flex-1 truncate">{item.label}</span>
@@ -220,13 +224,19 @@ function NavList({
   counts?: NavCounts;
   onNavigate?: () => void;
 }) {
-  // Collapsible group state, persisted per-group. Default: everything open.
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // Keep the daily tools visible; secondary sections open on demand.
+  const defaultCollapsed: Record<string, boolean> = {
+    pipeline: true,
+    money: true,
+    team: true,
+    system: true,
+  };
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(defaultCollapsed);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem("nl:nav-collapsed");
-      if (raw) setCollapsed(JSON.parse(raw));
+      if (raw) setCollapsed({ ...defaultCollapsed, ...JSON.parse(raw) });
     } catch {
       /* ignore */
     }
@@ -269,7 +279,7 @@ function NavList({
           );
         }
 
-        const isOpen = !collapsed[group];
+        const isOpen = groupItems.some((item) => isActive(pathname, item.href)) || !collapsed[group];
         return (
           <div key={group} className="mb-5 last:mb-0">
             <button
@@ -302,7 +312,7 @@ function PrimaryAction({
     <Link
       href={action.href}
       onClick={onNavigate}
-      className="group mb-4 flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#FF2A2A,#B00C12)] px-3 py-2.5 text-[13.5px] font-display font-bold text-white shadow-brand-glow transition-all duration-300 hover:-translate-y-[2px] hover:shadow-brand-glow-hover"
+      className="group mb-4 flex items-center justify-center gap-2 rounded-xl border border-brand/40 bg-brand/15 px-3 py-2.5 text-[13.5px] font-display font-bold text-white transition-colors duration-200 hover:bg-brand/25"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d={action.icon} />
@@ -395,24 +405,63 @@ export function MobileSideNav({
   const { t } = useI18n();
   const pathname = usePathname();
   const items = buildNav(t).filter((i) => i.rolesAllowed.includes(role));
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <aside className="absolute inset-y-0 left-0 flex w-[260px] flex-col border-r border-white/8 bg-ink/95 backdrop-blur-2xl">
+  const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // Portals need a client-side mount before document.body exists.
+  useEffect(() => setMounted(true), []);
+
+  // While open: close on Escape, lock body scroll, and move focus into the
+  // drawer for keyboard/screen-reader users. Everything is restored on close.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  if (!mounted || !open) return null;
+
+  // Rendered in a portal on <body> — NOT inside the backdrop-blurred header,
+  // whose backdrop-filter would otherwise clip this fixed layer to ~64px.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] lg:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+    >
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        className="absolute inset-y-0 left-0 flex w-[84%] max-w-[300px] flex-col border-r border-white/8 bg-ink/95 shadow-2xl outline-none"
+      >
         <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-white/8 px-5">
           <BrandLogo width={120} />
-          <button onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-ink/60 hover:bg-white/[0.06]">
+          <button onClick={onClose} aria-label="Close menu" className="rounded-lg p-1.5 text-ink/60 hover:bg-white/[0.06]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M6 6l12 12M6 18L18 6" />
             </svg>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
           <PrimaryAction role={role} onNavigate={onClose} />
           <NavList items={items} pathname={pathname} counts={counts} onNavigate={onClose} />
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }

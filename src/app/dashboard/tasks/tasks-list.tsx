@@ -34,8 +34,36 @@ export function TasksList({
   const { t } = useI18n();
 
   return (
-    <div className="glass overflow-hidden rounded-2xl">
-      <div className="overflow-x-auto">
+    <>
+      <div className="space-y-3 md:hidden">
+        {tasks.map((task) => {
+          const isOverdue = Boolean(
+            task.deadline &&
+            new Date(task.deadline).getTime() < new Date().setHours(0, 0, 0, 0) &&
+            task.status !== "done" && task.status !== "cancelled",
+          );
+          return (
+            <Link key={task.id} href={`/dashboard/tasks/${task.id}`} className="block rounded-2xl border border-white/10 bg-ink-2 p-4 transition-colors hover:border-brand/40">
+              <div className="flex items-start justify-between gap-3">
+                <p className="min-w-0 text-sm font-semibold text-white">{task.title}</p>
+                <Badge tone={statusTone[task.status]}>{t.tasks.status[task.status]}</Badge>
+              </div>
+              <p className="mt-2 truncate text-xs text-white/55">{task.project?.name ?? "No project"}{task.client ? ` · ${task.client.name}` : ""}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 text-xs text-white/55">
+                <Badge tone={priorityTone[task.priority]}>{t.tasks.priority[task.priority]}</Badge>
+                <span>{task.assignee ?? t.tasks.form.unassigned}</span>
+                {task.deadline && (
+                  <span className={cn("ml-auto", isOverdue && "font-semibold text-brand-light")}>
+                    {new Date(task.deadline).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}
+                  </span>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+      <div className="glass hidden overflow-hidden rounded-2xl md:block">
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr className="border-b border-ink/8 bg-white/40 text-left">
@@ -149,8 +177,9 @@ export function TasksList({
             })}
           </tbody>
         </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

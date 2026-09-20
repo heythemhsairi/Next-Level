@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith("/login");
+  const isRecoveryRoute = path.startsWith("/auth/");
   const isDashboard = path.startsWith("/dashboard");
   const isPortal = path.startsWith("/portal");
   const isPublicAsset =
@@ -66,7 +67,7 @@ export async function updateSession(request: NextRequest) {
   // If Supabase didn't answer in time, fail safe: let auth routes / public
   // assets through (so /login still renders) and bounce everything else there.
   if (authResult === null) {
-    if (isAuthRoute || isPublicAsset) return supabaseResponse;
+    if (isAuthRoute || isRecoveryRoute || isPublicAsset) return supabaseResponse;
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -75,7 +76,7 @@ export async function updateSession(request: NextRequest) {
   const user = authResult.data.user;
 
   // Not logged in → only auth route / public assets allowed.
-  if (!user && !isAuthRoute && !isPublicAsset) {
+  if (!user && !isAuthRoute && !isRecoveryRoute && !isPublicAsset) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -90,6 +91,7 @@ export async function updateSession(request: NextRequest) {
     // If the role lookup times out, let the request proceed rather than 504;
     // the page-level guards (requireStaff/requireClient) still enforce access.
     const profile = profileResult?.data ?? null;
+    const roleResolved = !!profile?.role;
     const isClient = profile?.role === "client";
     const home = isClient ? "/portal" : "/dashboard";
 
@@ -99,11 +101,15 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     };
 
-    // Send authenticated users off the login page to their home.
-    if (isAuthRoute) return redirectTo(home);
-    // Keep each role on its own side of the app.
+    // Only pull an authenticated user off the login page once we've actually
+    // resolved their role. An unresolved profile (orphaned/deleted account, or
+    // a lookup blip) would otherwise be shoved into /dashboard and bounced
+    // straight back here by the fail-closed server guard — an infinite loop.
+    // Let /login render for them instead.
+    if (isAuthRoute && roleResolved) return redirectTo(home);
+    // Keep each resolved role on its own side of the app.
     if (isClient && isDashboard) return redirectTo("/portal");
-    if (!isClient && isPortal) return redirectTo("/dashboard");
+    if (roleResolved && !isClient && isPortal) return redirectTo("/dashboard");
   }
 
   return supabaseResponse;
